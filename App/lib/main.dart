@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pip_boi/Achievements.dart';
-import 'package:pip_boi/Tasklist.dart';
 import 'package:pip_boi/Home.dart';
+
 
 void main() {
   runApp(const MaterialApp(
@@ -26,3 +25,4 @@ class Sandbox extends StatelessWidget {
     );
   }
 }
+
