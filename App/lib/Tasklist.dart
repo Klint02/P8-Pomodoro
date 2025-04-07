@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '_task.dart';
 
 class Tasklist extends StatefulWidget {
   const Tasklist({super.key});
@@ -9,17 +10,20 @@ class Tasklist extends StatefulWidget {
 
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
-  List<String> tasks = [];
+  List<Task> _taskList = [];
+  TimeOfDay currentTime = TimeOfDay.now();
 
-  void _addTask(String input) {
+
+  void _addTask(Task input) {
     setState(() {
-      tasks.add(input);
+
+      _taskList.add(input);
     });
   }
 
-  void _changeTask(String input, int index) {
+  void _changeTask(Task input, int index) {
     setState(() {
-      tasks[index] = input;
+      _taskList[index] = input;
     });
   }
 
@@ -35,20 +39,40 @@ class _TasklistState extends State<Tasklist> {
     super.dispose();
   }
 
-  Future<String?> openDialog() async {
-    return showDialog<String>(
+  Future<Task?> openDialog() async {
+    return showDialog<Task>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Task:"),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(hintText: "Enter your task"),
-          controller: controller,
+        content: Column(
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(hintText: "Enter your task"),
+              controller: controller,
+            ),
+            Text("${currentTime.hour}:${currentTime.minute}"),
+            TextButton(
+                onPressed: () async {
+                  final TimeOfDay? timeOfDay = await showTimePicker(
+                      context: context,
+                      initialTime: currentTime,
+                      initialEntryMode: TimePickerEntryMode.dial
+                  );
+                  if (timeOfDay != null) {
+                    setState(() {
+                      currentTime = timeOfDay;
+                    });
+                  }
+                },
+                child: const Text("Select a time")
+            )
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(controller.text);
+              Navigator.of(context).pop(Task(controller.text, currentTime));
             },
             child: const Text("Enter"),
           ),
@@ -68,17 +92,17 @@ class _TasklistState extends State<Tasklist> {
             const Text("Task for today:"),
             Expanded(
               child: ListView.builder(
-                itemCount: tasks.length,
+                itemCount: _taskList.length,
                 itemBuilder: (context, index) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(tasks[index]),
+                      Text("${_taskList[index].taskName} at ${_taskList[index].time.format(context)}"),
                       const SizedBox(width: 10), // Fixed spacing issue
                       FilledButton(
                         onPressed: () async {
                           final inputTask = await openDialog();
-                          if (inputTask != null && inputTask.isNotEmpty) {
+                          if (inputTask != null && inputTask.taskName.isNotEmpty) {
                             _changeTask(inputTask, index);
                           }
                         },
@@ -88,7 +112,7 @@ class _TasklistState extends State<Tasklist> {
                       FilledButton(
                         onPressed: () {
                           setState(() {
-                            tasks.removeAt(index);
+                            _taskList.removeAt(index);
                           });
                         },
                         child: const Icon(Icons.remove),
@@ -104,7 +128,8 @@ class _TasklistState extends State<Tasklist> {
                 FilledButton(
                   onPressed: () async {
                     final inputTask = await openDialog();
-                    if (inputTask != null && inputTask.isNotEmpty) {
+                    if (inputTask != null && inputTask.taskName.isNotEmpty) {
+                      print(inputTask);
                       _addTask(inputTask);
                     }
                   },
