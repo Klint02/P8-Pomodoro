@@ -11,19 +11,20 @@ class Tasklist extends StatefulWidget {
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
   List<Task> _taskList = [];
+  List<List<Task>> week = [[],[]];
+  int day = 0;
   TimeOfDay currentTime = TimeOfDay.now();
 
 
   void _addTask(Task input) {
     setState(() {
-
-      _taskList.add(input);
+      week[day].add(input);
     });
   }
 
   void _changeTask(Task input, int index) {
     setState(() {
-      _taskList[index] = input;
+      week[day][index] = input;
     });
   }
 
@@ -89,15 +90,44 @@ class _TasklistState extends State<Tasklist> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(onPressed: () {
+                  setState(() {
+                    day = 0;
+                  });
+
+                }, child: Text(
+                    "1",
+                  style: TextStyle(
+                    fontWeight: day == 0 ? FontWeight.bold : FontWeight.normal,
+                    color: day == 0 ? Colors.blue : Colors.black,
+                  ),
+                )
+                ),
+                TextButton(onPressed: () {
+                  setState(() {
+                    day = 1;
+                  });
+                }, child: Text(
+                  "2",
+                  style: TextStyle(
+                    fontWeight: day == 1 ? FontWeight.bold : FontWeight.normal,
+                    color: day == 1 ? Colors.blue : Colors.black,
+                  ),
+                )),
+              ],
+            ),
             const Text("Task for today:"),
             Expanded(
               child: ListView.builder(
-                itemCount: _taskList.length,
+                itemCount: week[day].length,
                 itemBuilder: (context, index) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("${_taskList[index].taskName} at ${_taskList[index].time.format(context)}"),
+                      Text("${week[day][index].taskName} at ${week[day][index].time.format(context)}"),
                       const SizedBox(width: 10), // Fixed spacing issue
                       FilledButton(
                         onPressed: () async {
@@ -112,7 +142,7 @@ class _TasklistState extends State<Tasklist> {
                       FilledButton(
                         onPressed: () {
                           setState(() {
-                            _taskList.removeAt(index);
+                            week[day].removeAt(index);
                           });
                         },
                         child: const Icon(Icons.remove),
