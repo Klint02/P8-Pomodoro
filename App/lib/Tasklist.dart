@@ -11,10 +11,9 @@ class Tasklist extends StatefulWidget {
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
   List<Task> _taskList = [];
-  List<List<Task>> week = [[],[]];
+  List<List<Task>> week = [[], [], [], [], [], [], []];
   int day = 0;
   TimeOfDay currentTime = TimeOfDay.now();
-
 
   void _addTask(Task input) {
     setState(() {
@@ -58,16 +57,14 @@ class _TasklistState extends State<Tasklist> {
                   final TimeOfDay? timeOfDay = await showTimePicker(
                       context: context,
                       initialTime: currentTime,
-                      initialEntryMode: TimePickerEntryMode.dial
-                  );
+                      initialEntryMode: TimePickerEntryMode.dial);
                   if (timeOfDay != null) {
                     setState(() {
                       currentTime = timeOfDay;
                     });
                   }
                 },
-                child: const Text("Select a time")
-            )
+                child: const Text("Select a time"))
           ],
         ),
         actions: [
@@ -92,32 +89,22 @@ class _TasklistState extends State<Tasklist> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(onPressed: () {
-                  setState(() {
-                    day = 0;
-                  });
-
-                }, child: Text(
-                    "1",
-                  style: TextStyle(
-                    fontWeight: day == 0 ? FontWeight.bold : FontWeight.normal,
-                    color: day == 0 ? Colors.blue : Colors.black,
+              children: List.generate(7, (index) {
+                return TextButton(
+                  onPressed: () {
+                    setState(() {
+                      day = index;
+                    });
+                  },
+                  child: Text(
+                    '${index + 1}', // Displaying 1 to 7 for days
+                    style: TextStyle(
+                      fontWeight: day == index ? FontWeight.bold : FontWeight.normal,
+                      color: day == index ? Colors.blue : Colors.black,
+                    ),
                   ),
-                )
-                ),
-                TextButton(onPressed: () {
-                  setState(() {
-                    day = 1;
-                  });
-                }, child: Text(
-                  "2",
-                  style: TextStyle(
-                    fontWeight: day == 1 ? FontWeight.bold : FontWeight.normal,
-                    color: day == 1 ? Colors.blue : Colors.black,
-                  ),
-                )),
-              ],
+                );
+              }),
             ),
             const Text("Task for today:"),
             Expanded(
@@ -127,12 +114,14 @@ class _TasklistState extends State<Tasklist> {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("${week[day][index].taskName} at ${week[day][index].time.format(context)}"),
+                      Text(
+                          "${week[day][index].taskName} at ${week[day][index].time.format(context)}"),
                       const SizedBox(width: 10), // Fixed spacing issue
                       FilledButton(
                         onPressed: () async {
                           final inputTask = await openDialog();
-                          if (inputTask != null && inputTask.taskName.isNotEmpty) {
+                          if (inputTask != null &&
+                              inputTask.taskName.isNotEmpty) {
                             _changeTask(inputTask, index);
                           }
                         },
