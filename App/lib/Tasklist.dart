@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '_task.dart';
 
+enum weekDays {Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday}
+
 class Tasklist extends StatefulWidget {
   const Tasklist({super.key});
 
@@ -8,29 +10,41 @@ class Tasklist extends StatefulWidget {
   State<Tasklist> createState() => _TasklistState();
 }
 
+
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
   List<Task> _taskList = [];
   List<List<Task>> week = [[], [], [], [], [], [], []];
-  int day = 0;
+  List<List<Task>> completedTasks = [[], [], [], [], [], [], []];
+  int selectedDay = 0;
+  var date = DateTime.now();
+  late var firstDay;
+
+
   TimeOfDay currentTime = TimeOfDay.now();
+
 
   void _addTask(Task input) {
     setState(() {
-      week[day].add(input);
+      week[selectedDay].add(input);
     });
   }
 
   void _changeTask(Task input, int index) {
     setState(() {
-      week[day][index] = input;
+      week[selectedDay][index] = input;
     });
   }
+
+
 
   @override
   void initState() {
     super.initState();
     controller = TextEditingController();
+    var currentDay = date;
+    selectedDay = currentDay.weekday-1;
+    firstDay = DateTime.now().subtract(Duration(days:currentDay.weekday-1));
   }
 
   @override
@@ -93,14 +107,14 @@ class _TasklistState extends State<Tasklist> {
                 return TextButton(
                   onPressed: () {
                     setState(() {
-                      day = index;
+                      selectedDay = index;
                     });
                   },
                   child: Text(
-                    '${index + 1}', // Displaying 1 to 7 for days
+                    '${firstDay.add(Duration(days:index)).day}/${firstDay.add(Duration(days:index)).month}', // Displaying 1 to 7 for days
                     style: TextStyle(
-                      fontWeight: day == index ? FontWeight.bold : FontWeight.normal,
-                      color: day == index ? Colors.blue : Colors.black,
+                      fontWeight: selectedDay == index ? FontWeight.bold : FontWeight.normal,
+                      color: selectedDay == index ? Colors.blue : Colors.black,
                     ),
                   ),
                 );
@@ -109,13 +123,13 @@ class _TasklistState extends State<Tasklist> {
             const Text("Task for today:"),
             Expanded(
               child: ListView.builder(
-                itemCount: week[day].length,
+                itemCount: week[selectedDay].length,
                 itemBuilder: (context, index) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                          "${week[day][index].taskName} at ${week[day][index].time.format(context)}"),
+                          "${week[selectedDay][index].taskName} at ${week[selectedDay][index].time.format(context)}"),
                       const SizedBox(width: 10), // Fixed spacing issue
                       FilledButton(
                         onPressed: () async {
@@ -131,7 +145,7 @@ class _TasklistState extends State<Tasklist> {
                       FilledButton(
                         onPressed: () {
                           setState(() {
-                            week[day].removeAt(index);
+                            week[selectedDay].removeAt(index);
                           });
                         },
                         child: const Icon(Icons.remove),
