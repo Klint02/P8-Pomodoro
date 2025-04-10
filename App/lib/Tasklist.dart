@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '_task.dart';
+import 'package:pip_boi/_global.dart';
+import 'package:pip_boi/_task.dart';
 
 enum weekDays {Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday}
 
@@ -14,8 +15,7 @@ class Tasklist extends StatefulWidget {
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
   List<Task> _taskList = [];
-  List<List<Task>> week = [[], [], [], [], [], [], []];
-  List<List<Task>> completedTasks = [[], [], [], [], [], [], []];
+
   int selectedDay = 0;
   var date = DateTime.now();
   late var firstDay;
@@ -28,12 +28,14 @@ class _TasklistState extends State<Tasklist> {
     setState(() {
       week[selectedDay].add(input);
     });
+    controller.clear();
   }
 
   void _changeTask(Task input, int index) {
     setState(() {
       week[selectedDay][index] = input;
     });
+    controller.clear();
   }
 
 
@@ -173,6 +175,7 @@ class _TasklistState extends State<Tasklist> {
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);
+
               },
               child: const Text('Back'),
             ),
