@@ -4,6 +4,7 @@ import 'package:pip_boi/Settings.dart';
 import 'package:pip_boi/Tasklist.dart';
 import 'package:pip_boi/_global.dart';
 import 'package:pip_boi/_task.dart';
+import 'package:provider/provider.dart';
 //import 'package:provider/provider.dart';
 
 class Home extends StatelessWidget {
@@ -85,12 +86,7 @@ class TaskList extends StatefulWidget {
 }
 
 class _TaskListState extends State<TaskList> {
-  var tasks = <String>[
-    "Tag opvasken",
-    "Lav lektier",
-    "Task 4"
-  ];
- // list of tasks <-- FUCK DEN HER LISTE
+
   int today = DateTime.now().weekday-1;
 
   @override
@@ -102,10 +98,13 @@ class _TaskListState extends State<TaskList> {
 
   @override
   Widget build(BuildContext context) {
+    var taskProvider = Provider.of<TaskProvider>(context);
+    var tasks = taskProvider.getTaskForDay(today);
+
     return Center(
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(100, 0, 100, 0),
-        itemCount: week[today].length,
+        itemCount: tasks.length,
         itemBuilder: (BuildContext context, int index) {
           return CheckboxListTile(
               value: false,
@@ -114,7 +113,7 @@ class _TaskListState extends State<TaskList> {
                   value = !value!;
                 });
               },
-              title: Text("${week[today][index].taskName} at ${week[today][index].time.format(context)}")
+              title: Text("${tasks[index].taskName} at ${tasks[index].time.format(context)}")
           );
         },
       ),

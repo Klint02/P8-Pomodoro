@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:pip_boi/_global.dart';
 import 'package:pip_boi/_task.dart';
+import 'package:provider/provider.dart';
 
 enum weekDays {Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday}
+
+class TaskProvider extends ChangeNotifier {
+  List<List<Task>> taskweek = List.generate(7, (_) => []);
+
+  void _addTask(Task input, int dayIndex) {
+    taskweek[dayIndex].add(input);
+    notifyListeners();
+  }
+
+  void _changeTask(Task input, int dayIndex, int taskIndex) {
+    taskweek[dayIndex][taskIndex] = input;
+    notifyListeners();
+  }
+
+  void _removeTask(int dayIndex, int taskIndex) {
+    taskweek[dayIndex].removeAt(taskIndex);
+    notifyListeners();
+  }
+
+  List<Task> getTaskForDay(int dayIndex){
+    return taskweek[dayIndex];
+  }
+}
+
 
 class Tasklist extends StatefulWidget {
   const Tasklist({super.key});
@@ -97,6 +122,10 @@ class _TasklistState extends State<Tasklist> {
 
   @override
   Widget build(BuildContext context) {
+
+    var taskProvider = Provider.of<TaskProvider>(context);
+    var tasks = taskProvider.getTaskForDay(selectedDay);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Task list')),
       body: Center(
@@ -125,20 +154,20 @@ class _TasklistState extends State<Tasklist> {
             const Text("Task for today:"),
             Expanded(
               child: ListView.builder(
-                itemCount: week[selectedDay].length,
+                itemCount: tasks.length,
                 itemBuilder: (context, index) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                          "${week[selectedDay][index].taskName} at ${week[selectedDay][index].time.format(context)}"),
-                      const SizedBox(width: 10), // Fixed spacing issue
+                          "${tasks[index].taskName} at ${tasks[index].time.format(context)}"),
+                      const SizedBox(width: 10),
                       FilledButton(
                         onPressed: () async {
                           final inputTask = await openDialog();
                           if (inputTask != null &&
                               inputTask.taskName.isNotEmpty) {
-                            _changeTask(inputTask, index);
+                            taskProvider._changeTask(inputTask, selectedDay, index);
                           }
                         },
                         child: const Icon(Icons.settings),
@@ -147,7 +176,7 @@ class _TasklistState extends State<Tasklist> {
                       FilledButton(
                         onPressed: () {
                           setState(() {
-                            week[selectedDay].removeAt(index);
+                            taskProvider._removeTask(selectedDay, index);
                           });
                         },
                         child: const Icon(Icons.remove),
@@ -164,8 +193,7 @@ class _TasklistState extends State<Tasklist> {
                   onPressed: () async {
                     final inputTask = await openDialog();
                     if (inputTask != null && inputTask.taskName.isNotEmpty) {
-                      print(inputTask);
-                      _addTask(inputTask);
+                      taskProvider._addTask(inputTask, selectedDay);
                     }
                   },
                   child: const Text("Add"),
