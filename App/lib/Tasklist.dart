@@ -13,7 +13,7 @@ class Tasklist extends StatefulWidget {
 
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
-  List<Task> _taskList = [];
+  //List<Task> _taskList = [];
   List<List<Task>> week = [[], [], [], [], [], [], []];
   List<List<Task>> completedTasks = [[], [], [], [], [], [], []];
   int selectedDay = 0;
