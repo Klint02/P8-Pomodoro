@@ -112,9 +112,16 @@ class _TasklistState extends State<Tasklist> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(Task(controller.text, currentTime));
+              controller.clear();
             },
             child: const Text("Enter"),
           ),
+          TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(Task("", currentTime));
+              },
+              child: const Text("Cancel"),
+          )
         ],
       ),
     );
@@ -203,7 +210,6 @@ class _TasklistState extends State<Tasklist> {
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);
-
               },
               child: const Text('Back'),
             ),

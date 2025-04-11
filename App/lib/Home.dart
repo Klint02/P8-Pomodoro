@@ -107,10 +107,12 @@ class _TaskListState extends State<TaskList> {
         itemCount: tasks.length,
         itemBuilder: (BuildContext context, int index) {
           return CheckboxListTile(
-              value: false,
+              value: tasks[index].isChecked,
               onChanged: (bool? value) {
                 setState(() {
-                  value = !value!;
+                  tasks[index].isChecked = value!;
+
+                  print(value);
                 });
               },
               title: Text("${tasks[index].taskName} at ${tasks[index].time.format(context)}")
