@@ -43,7 +43,7 @@ class _TasklistState extends State<Tasklist> {
   late var firstDay;
 
 
-  TimeOfDay currentTime = TimeOfDay.now();
+
 
   @override
   void initState() {
@@ -62,33 +62,38 @@ class _TasklistState extends State<Tasklist> {
 
   Future<Task?> openDialog(bool changeTask, int index) async {
     String title = changeTask? "Change task" : "Create task";
+    TimeOfDay currentTime = TimeOfDay.now();
     return showDialog<Task>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: Column(
-          children: [
-            TextField(
-              autofocus: true,
-              decoration: const InputDecoration(hintText: "Enter your task"),
-              controller: controller,
-            ),
-            // Text("${currentTime.hour}:${currentTime.minute}"),
-            TextButton(
-                onPressed: () async {
-                  final TimeOfDay? timeOfDay = await showTimePicker(
-                      context: context,
-                      initialTime: currentTime,
-                      initialEntryMode: TimePickerEntryMode.dial);
-                  if (timeOfDay != null) {
-                    setState(() {
-                      currentTime = timeOfDay;
-                    });
-                  }
-                },
-                child: const Text("Select a time")
-            ),
-          ],
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Column(
+              children: [
+                TextField(
+                  autofocus: true,
+                  decoration: const InputDecoration(hintText: "Enter your task"),
+                  controller: controller,
+                ),
+                Text("${currentTime.hour}:${currentTime.minute}"),
+                TextButton(
+                    onPressed: () async {
+                      final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: currentTime,
+                          initialEntryMode: TimePickerEntryMode.dial);
+                      if (timeOfDay != null) {
+                        setStateDialog(() {
+                          currentTime = timeOfDay;
+                        });
+                      }
+                    },
+                    child: const Text("Select a time")
+                ),
+              ],
+            );
+          }
         ),
         actions: [
           TextButton(
@@ -165,9 +170,7 @@ class _TasklistState extends State<Tasklist> {
                       const SizedBox(width: 10),
                       FilledButton(
                         onPressed: () {
-                          setState(() {
-                            taskProvider.removeTask(selectedDay, index);
-                          });
+                          taskProvider.removeTask(selectedDay, index);
                         },
                         child: const Icon(Icons.remove),
                       ),
