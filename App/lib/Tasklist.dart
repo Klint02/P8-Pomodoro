@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pip_boi/_global.dart';
 import 'package:pip_boi/_task.dart';
 import 'package:provider/provider.dart';
 
@@ -61,8 +60,10 @@ class _TasklistState extends State<Tasklist> {
   }
 
   Future<Task?> openDialog(bool changeTask, int index) async {
+    var taskProvider = Provider.of<TaskProvider>(context, listen: false);
     String title = changeTask? "Change task" : "Create task";
     TimeOfDay currentTime = TimeOfDay.now();
+
     return showDialog<Task>(
       context: context,
       builder: (context) => AlertDialog(
@@ -91,6 +92,19 @@ class _TasklistState extends State<Tasklist> {
                     },
                     child: const Text("Select a time")
                 ),
+                if (changeTask)
+                  TextButton(
+
+                    onPressed: () {
+                      taskProvider.removeTask(selectedDay, index);
+                      Navigator.of(context).pop(Task("", currentTime));
+                      controller.clear();
+                    },
+                    child: const Text(
+                      "Remove task",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
               ],
             );
           }

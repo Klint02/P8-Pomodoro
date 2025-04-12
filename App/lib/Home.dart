@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pip_boi/Achievements.dart';
 import 'package:pip_boi/Settings.dart';
 import 'package:pip_boi/Tasklist.dart';
-import 'package:pip_boi/_global.dart';
 import 'package:pip_boi/_task.dart';
 import 'package:provider/provider.dart';
 //import 'package:provider/provider.dart';
@@ -52,10 +51,6 @@ class Home extends StatelessWidget {
     );
   }
 }
-
-class MyAppState extends ChangeNotifier {
-}
-
 
 class TaskButton extends StatelessWidget {
   @override
@@ -111,8 +106,6 @@ class _TaskListState extends State<TaskList> {
               onChanged: (bool? value) {
                 setState(() {
                   tasks[index].isChecked = value!;
-
-                  print(value);
                 });
               },
               title: Text("${tasks[index].taskName} at ${tasks[index].time.format(context)}")
