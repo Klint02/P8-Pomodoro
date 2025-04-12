@@ -182,12 +182,6 @@ class _TasklistState extends State<Tasklist> {
                         child: const Icon(Icons.settings),
                       ),
                       const SizedBox(width: 10),
-                      FilledButton(
-                        onPressed: () {
-                          taskProvider.removeTask(selectedDay, index);
-                        },
-                        child: const Icon(Icons.remove),
-                      ),
                     ],
                   );
                 },
