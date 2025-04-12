@@ -3,22 +3,20 @@ import 'package:pip_boi/_global.dart';
 import 'package:pip_boi/_task.dart';
 import 'package:provider/provider.dart';
 
-enum weekDays {Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday}
-
 class TaskProvider extends ChangeNotifier {
   List<List<Task>> taskweek = List.generate(7, (_) => []);
 
-  void _addTask(Task input, int dayIndex) {
+  void addTask(Task input, int dayIndex) {
     taskweek[dayIndex].add(input);
     notifyListeners();
   }
 
-  void _changeTask(Task input, int dayIndex, int taskIndex) {
+  void changeTask(Task input, int dayIndex, int taskIndex) {
     taskweek[dayIndex][taskIndex] = input;
     notifyListeners();
   }
 
-  void _removeTask(int dayIndex, int taskIndex) {
+  void removeTask(int dayIndex, int taskIndex) {
     taskweek[dayIndex].removeAt(taskIndex);
     notifyListeners();
   }
@@ -39,7 +37,6 @@ class Tasklist extends StatefulWidget {
 
 class _TasklistState extends State<Tasklist> {
   late TextEditingController controller;
-  List<Task> _taskList = [];
 
   int selectedDay = 0;
   var date = DateTime.now();
@@ -47,23 +44,6 @@ class _TasklistState extends State<Tasklist> {
 
 
   TimeOfDay currentTime = TimeOfDay.now();
-
-
-  void _addTask(Task input) {
-    setState(() {
-      week[selectedDay].add(input);
-    });
-    controller.clear();
-  }
-
-  void _changeTask(Task input, int index) {
-    setState(() {
-      week[selectedDay][index] = input;
-    });
-    controller.clear();
-  }
-
-
 
   @override
   void initState() {
@@ -80,11 +60,12 @@ class _TasklistState extends State<Tasklist> {
     super.dispose();
   }
 
-  Future<Task?> openDialog() async {
+  Future<Task?> openDialog(bool changeTask, int index) async {
+    String title = changeTask? "Change task" : "Create task";
     return showDialog<Task>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Task:"),
+        title: Text(title),
         content: Column(
           children: [
             TextField(
@@ -92,7 +73,7 @@ class _TasklistState extends State<Tasklist> {
               decoration: const InputDecoration(hintText: "Enter your task"),
               controller: controller,
             ),
-            Text("${currentTime.hour}:${currentTime.minute}"),
+            // Text("${currentTime.hour}:${currentTime.minute}"),
             TextButton(
                 onPressed: () async {
                   final TimeOfDay? timeOfDay = await showTimePicker(
@@ -105,10 +86,18 @@ class _TasklistState extends State<Tasklist> {
                     });
                   }
                 },
-                child: const Text("Select a time"))
+                child: const Text("Select a time")
+            ),
           ],
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(Task("", currentTime));
+              controller.clear();
+            },
+            child: const Text("Cancel"),
+          ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(Task(controller.text, currentTime));
@@ -116,12 +105,6 @@ class _TasklistState extends State<Tasklist> {
             },
             child: const Text("Enter"),
           ),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(Task("", currentTime));
-              },
-              child: const Text("Cancel"),
-          )
         ],
       ),
     );
@@ -171,10 +154,10 @@ class _TasklistState extends State<Tasklist> {
                       const SizedBox(width: 10),
                       FilledButton(
                         onPressed: () async {
-                          final inputTask = await openDialog();
+                          final inputTask = await openDialog(true, index);
                           if (inputTask != null &&
                               inputTask.taskName.isNotEmpty) {
-                            taskProvider._changeTask(inputTask, selectedDay, index);
+                            taskProvider.changeTask(inputTask, selectedDay, index);
                           }
                         },
                         child: const Icon(Icons.settings),
@@ -183,7 +166,7 @@ class _TasklistState extends State<Tasklist> {
                       FilledButton(
                         onPressed: () {
                           setState(() {
-                            taskProvider._removeTask(selectedDay, index);
+                            taskProvider.removeTask(selectedDay, index);
                           });
                         },
                         child: const Icon(Icons.remove),
@@ -198,9 +181,9 @@ class _TasklistState extends State<Tasklist> {
               children: [
                 FilledButton(
                   onPressed: () async {
-                    final inputTask = await openDialog();
+                    final inputTask = await openDialog(false, 0);
                     if (inputTask != null && inputTask.taskName.isNotEmpty) {
-                      taskProvider._addTask(inputTask, selectedDay);
+                      taskProvider.addTask(inputTask, selectedDay);
                     }
                   },
                   child: const Text("Add"),
