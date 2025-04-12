@@ -3,25 +3,25 @@ import 'package:pip_boi/_task.dart';
 import 'package:provider/provider.dart';
 
 class TaskProvider extends ChangeNotifier {
-  List<List<Task>> taskweek = List.generate(7, (_) => []);
+  List<List<Task>> week = List.generate(7, (_) => []);
 
   void addTask(Task input, int dayIndex) {
-    taskweek[dayIndex].add(input);
+    week[dayIndex].add(input);
     notifyListeners();
   }
 
   void changeTask(Task input, int dayIndex, int taskIndex) {
-    taskweek[dayIndex][taskIndex] = input;
+    week[dayIndex][taskIndex] = input;
     notifyListeners();
   }
 
   void removeTask(int dayIndex, int taskIndex) {
-    taskweek[dayIndex].removeAt(taskIndex);
+    week[dayIndex].removeAt(taskIndex);
     notifyListeners();
   }
 
   List<Task> getTaskForDay(int dayIndex){
-    return taskweek[dayIndex];
+    return week[dayIndex];
   }
 }
 
