@@ -94,7 +94,7 @@ class _TaskListState extends State<TaskList> {
   @override
   Widget build(BuildContext context) {
     var taskProvider = Provider.of<TaskProvider>(context);
-    var tasks = taskProvider.getTaskForDay(today);
+    var tasks = taskProvider.getTasksForDay(today);
 
     return Center(
       child: ListView.builder(
@@ -108,7 +108,7 @@ class _TaskListState extends State<TaskList> {
                   tasks[index].isChecked = value!;
                 });
               },
-              title: Text("${tasks[index].taskName} at ${tasks[index].time.format(context)}")
+              title: Text("${tasks[index].taskName} at ${tasks[index].startTime.format(context)}")
           );
         },
       ),
