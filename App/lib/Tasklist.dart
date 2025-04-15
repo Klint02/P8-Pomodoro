@@ -25,24 +25,42 @@ class TaskProvider extends ChangeNotifier {
   }
 
   void changeTask(Task input, int dayIndex, int taskIndex) {
-    /*
+
     var oldStartTime = week[dayIndex][taskIndex].startTime;
+    late int newIndex;
 
     if (week[dayIndex].length == 1 || oldStartTime.isAtSameTimeAs(input.startTime)) {
       week[dayIndex][taskIndex] = input;
+      print("Test");
+    }
+    else if (input.startTime.isAfter(week[dayIndex].last.startTime)) {
+      week[dayIndex].removeAt(taskIndex);
+      week[dayIndex].add(input);
     }
     else {
       for (int i = 0; i < week[dayIndex].length; i++) {
         if (input.startTime.isBefore(week[dayIndex][i].startTime)) {
-          week[dayIndex].removeAt(taskIndex);
-          week[dayIndex].insert(i, input);
+          _moveTask(i, taskIndex, dayIndex, input);
+          print("Test2");
+          break;
         }
       }
     }
-    */
-    week[dayIndex][taskIndex] = input;
 
     notifyListeners();
+  }
+
+  void _moveTask(int newIndex, int oldIndex, int dayIndex, input) {
+
+    if (newIndex < oldIndex) {
+      week[dayIndex].removeAt(oldIndex);
+      week[dayIndex].insert(newIndex, input);
+    }
+    else {
+      week[dayIndex].insert(newIndex, input);
+      week[dayIndex].removeAt(oldIndex);
+    }
+
   }
 
   void removeTask(int dayIndex, int taskIndex) {
