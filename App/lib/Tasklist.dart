@@ -6,12 +6,42 @@ class TaskProvider extends ChangeNotifier {
   List<List<Task>> week = List.generate(7, (_) => []);
 
   void addTask(Task input, int dayIndex) {
-    week[dayIndex].add(input);
+    if (week[dayIndex].isEmpty) {
+      week[dayIndex].add(input);
+    }
+    else {
+      for (int i = 0; i < week[dayIndex].length; i++) {
+        if (input.startTime.isBefore(week[dayIndex][i].startTime)) {
+
+          week[dayIndex].insert(i, input);
+          break;
+        }
+        else if (input.startTime.isAfter(week[dayIndex].last.startTime)){
+          week[dayIndex].add(input);
+        }
+      }
+    }
     notifyListeners();
   }
 
   void changeTask(Task input, int dayIndex, int taskIndex) {
+    /*
+    var oldStartTime = week[dayIndex][taskIndex].startTime;
+
+    if (week[dayIndex].length == 1 || oldStartTime.isAtSameTimeAs(input.startTime)) {
+      week[dayIndex][taskIndex] = input;
+    }
+    else {
+      for (int i = 0; i < week[dayIndex].length; i++) {
+        if (input.startTime.isBefore(week[dayIndex][i].startTime)) {
+          week[dayIndex].removeAt(taskIndex);
+          week[dayIndex].insert(i, input);
+        }
+      }
+    }
+    */
     week[dayIndex][taskIndex] = input;
+
     notifyListeners();
   }
 
