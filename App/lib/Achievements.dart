@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AchievementsTab extends StatefulWidget {
   const AchievementsTab({super.key});
@@ -10,6 +14,8 @@ class AchievementsTab extends StatefulWidget {
 class _AchievementsTabState extends State<AchievementsTab> {
   int _counter = 0;
   List<int> completedTasks = [];
+  List _items = [];
+  int _taskCompleted = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -23,6 +29,35 @@ class _AchievementsTabState extends State<AchievementsTab> {
         completedTasks.add(_counter);
       }
     });
+  }
+
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('assets/tasks.json');
+    final data = await json.decode(response);
+    setState(() {
+      _items = data["tasks"];
+    });
+    // print(_items[1]["name"]);
+  }
+
+  void countTasks() {
+    for (var item in _items) {
+      if (item["completed"].toString() == "Yes") {
+        _taskCompleted++;
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    readJson();
+    print("hello");
+    for(var item in _items){
+      print(item);
+    }
+    print(_items);
+    countTasks();
+    super.initState();
   }
 
   @override
@@ -84,6 +119,41 @@ class _AchievementsTabState extends State<AchievementsTab> {
                           Text('5 tasks completed, getting warmed up.'),
                           Text('10 tasks completed, now were talking.'),
                           Text('25 tasks completed, your on fire.'),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 300,
+                      margin: EdgeInsets.all(10),
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          const Text('Load from json:'),
+                          const Divider(thickness: 2),
+                          FutureBuilder(
+                              future: readJson(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text("An error occurred"),
+                                  );
+                                } else {
+                                  return Center(child: Text("works"),
+                                  );
+                                }
+                              }
+                          ),
+                          // for (var i=1; i<=_taskCompleted; i++) Text("$i tasks completed."),
                         ],
                       ),
                     ),
