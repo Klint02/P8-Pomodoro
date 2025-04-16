@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class Task{
-  late String taskName;
-  late TimeOfDay time;
+  String taskName;
+  TimeOfDay startTime;
+  TimeOfDay endTime;
+  bool isChecked = false;
 
-
-  Task(this.taskName, this.time);
+  Task(this.taskName, this.startTime, this.endTime);
 }
