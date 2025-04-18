@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 Future<void> getStatus() async {
   final response = await http.get(Uri.parse('http://localhost:3000/status'));
@@ -11,13 +12,16 @@ Future<void> getStatus() async {
   } else {
     print('Failed to connect');
   }
+  //return http.get(Uri.parse('http://localhost:3000/status'));
 }
 
 Future<void> sendControlCommand() async {
   final response = await http.post(
     Uri.parse('http://localhost:3000/control'),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({'led': 'off'}),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode({'led': 'off'}),
   );
 
   if (response.statusCode == 200) {
