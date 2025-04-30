@@ -52,25 +52,6 @@ Future<Album> sendControlCommand() async {
     // then throw an exception.
     throw Exception('Failed to create album.');
   }
-
-  // final response = await http.post(
-  //   Uri.parse('https://jsonplaceholder.typicode.com/albums'),
-  //   headers: <String, String>{
-  //     'Content-Type': 'application/json; charset=UTF-8',
-  //   },
-  //   body: jsonEncode(<String, String>{'title': 'Test Album'}),
-  // );
-
-  // if (response.statusCode == 201) {
-  //   // If the server did return a 201 CREATED response,
-  //   // then parse the JSON.
-  //   print("response: ${response.body}");
-  //   return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-  // } else {
-  //   // If the server did not return a 201 CREATED response,
-  //   // then throw an exception.
-  //   throw Exception('Failed to create album.');
-  // }
 }
 
 
