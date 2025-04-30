@@ -3,6 +3,22 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
+class Album {
+  final int id;
+  final String title;
+
+  const Album({required this.id, required this.title});
+
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {'id': int id, 'title': String title} => Album(id: id, title: title),
+      _ => throw const FormatException('Failed to map json to album.'),
+    };
+  }
+
+  Map<String, dynamic> toJson() => {'id': id, 'title': title};
+}
+
 Future<void> getStatus() async {
   final response = await http.get(Uri.parse('http://localhost:3000/status'));
 
@@ -15,20 +31,46 @@ Future<void> getStatus() async {
   //return http.get(Uri.parse('http://localhost:3000/status'));
 }
 
-Future<void> sendControlCommand() async {
+Future<Album> sendControlCommand() async {
+  Album createdAlbum = Album(id: 1, title: 'Test Album');
+
   final response = await http.post(
     Uri.parse('http://localhost:3000/control'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode({'led': 'off'}),
+    body: jsonEncode(createdAlbum),
   );
 
   if (response.statusCode == 200) {
-    print('Command sent successfully');
+    // If the server did return a 201 CREATED response,
+    // then parse the JSON.
+    print("response: ${response.body}");
+    return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   } else {
-    print('Failed to send command');
+    // If the server did not return a 201 CREATED response,
+    // then throw an exception.
+    throw Exception('Failed to create album.');
   }
+
+  // final response = await http.post(
+  //   Uri.parse('https://jsonplaceholder.typicode.com/albums'),
+  //   headers: <String, String>{
+  //     'Content-Type': 'application/json; charset=UTF-8',
+  //   },
+  //   body: jsonEncode(<String, String>{'title': 'Test Album'}),
+  // );
+
+  // if (response.statusCode == 201) {
+  //   // If the server did return a 201 CREATED response,
+  //   // then parse the JSON.
+  //   print("response: ${response.body}");
+  //   return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  // } else {
+  //   // If the server did not return a 201 CREATED response,
+  //   // then throw an exception.
+  //   throw Exception('Failed to create album.');
+  // }
 }
 
 

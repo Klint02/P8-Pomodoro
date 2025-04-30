@@ -29,7 +29,7 @@ app.post('/control', (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Invalid input' });
   }
   console.log('Received control command:', req.body);
-  res.json({ status: 'ok' });
+  res.json({ id: 101, title:  req.body.title});
 });
 
 app.listen(port, () => {
