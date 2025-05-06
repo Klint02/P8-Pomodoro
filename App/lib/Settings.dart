@@ -33,13 +33,17 @@ Future<void> getStatus() async {
 
 Future<Album> sendControlCommand() async {
   Album createdAlbum = Album(id: 1, title: 'Test Album');
+  Album createdAlbum2 = Album(id: 2, title: 'Test Album 2');
+  Album createdAlbum3 = Album(id: 3, title: 'Test Album 3');
+
+  List<Album> albums = [createdAlbum, createdAlbum2, createdAlbum3];
 
   final response = await http.post(
     Uri.parse('http://localhost:3000/control'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(createdAlbum),
+    body: jsonEncode(albums), // albums.map((album) => album.toJson()).toList()
   );
 
   if (response.statusCode == 200) {
