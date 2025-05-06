@@ -15,7 +15,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
-String tasks[] = {"Buy birthday present", "Cleaning"};//, "Pick up kids", "Groceries"};
+String tasks[] = {"Buy birthday present", "Cleaning","Hejsa med digsa","super duper","intet"};//, "Pick up kids", "Groceries"};
 int taskNum = 0;
 String question = "Click the button to start task";
 
@@ -32,6 +32,8 @@ bool running = false;
 int minX;
 int x = 0;
 signed long secSinceStart =0.0; 
+bool timerbool=true;
+
 //Hourglass bitmap when timer is running.
 const unsigned char myBitmap [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x03, 0x7f, 0xff, 0xff, 0xfb, 0x7f, 0xff, 0xff, 0xf3, 0x1f, 0xff, 0xff, 0xe3,
@@ -82,14 +84,17 @@ bool lastButtonState = HIGH; // start assuming unpressed
 
 void loop()
 {
+  //Checks if running = true else just display current task.
   if(!running && taskNum < sizeof(tasks)/sizeof(tasks[0])){
     displayCurrentTask();
     pressRead();
   }else if(taskNum >= sizeof(tasks)/sizeof(tasks[0])){
+    // screen for when all tasks are complete
     doneFunc();
   }else {
+    //runs timer function
     timer();
-
+    pressRead();
   }
 
   //Decide whether the task is long enough for the screen or not.
@@ -105,13 +110,13 @@ void timer()
 {
 
   currentMillis = millis();
-
+  
   if (currentMillis - startmillis >= 1000)
   {
     startmillis = currentMillis;
     if (sec <= 0)
     {
-      if (minutes > 0)
+      if (minutes > 0 && timerbool)
       {
         minutes--;
         sec = 59;
@@ -192,25 +197,34 @@ void pressRead()
     {
       Serial.println("Long press");
       // change the flag
+      running = false;
+      break;
+    }
+    else if (timepressed < 3000 && currentBTNstate == HIGH && !running)
+    {
+      Serial.println("Short press");
       running = true;
 
       // resets the time.
-      minutes = 0;
-      sec = 5;
       break;
-    }
-    else if (timepressed < 3000 && currentBTNstate == HIGH)
-    {
-      Serial.println("Short press");
-
-      break;
+    }else if (timepressed < 3000 && currentBTNstate == HIGH && running) {
+      delay(100);
+      running = false;
+      minutes = 25;
+      sec = 0;
+      taskNum++;
+      if (taskNum < sizeof(tasks)/sizeof(tasks[0])) {
+      minX = -12 * tasks[taskNum].length();
+      }
+      secSinceStart = 0.0;
     }
   }
 }
-
+//Load-bar for other display feature.
 int calcBarPct(){
   return round((float)secSinceStart/1500*124);
 }
+// screen after all tasks are complete.
 void doneFunc(){
             display.clearDisplay();
             display.setCursor(0,0);
