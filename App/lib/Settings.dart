@@ -33,21 +33,21 @@ Future<void> getStatus() async {
   //return http.get(Uri.parse('http://localhost:3000/status'));
 }
 
-Future<Album> sendControlCommand() async {
+Future<Album> sendControlCommand(List<Object> inputList) async {
   Album createdAlbum = Album(id: 1, title: 'Test Album');
   Album createdAlbum2 = Album(id: 2, title: 'Test Album 2');
   Album createdAlbum3 = Album(id: 3, title: 'Test Album 3');
 
   List<Album> albums = [createdAlbum, createdAlbum2, createdAlbum3];
 
-  var taskProvider = Provider.of<TaskProvider>(context);
+  
 
   final response = await http.post(
     Uri.parse('http://localhost:3000/control'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(albums), // albums.map((album) => album.toJson()).toList()
+    body: jsonEncode(inputList), // albums.map((album) => album.toJson()).toList()
   );
 
   if (response.statusCode == 200) {
@@ -68,6 +68,8 @@ class SettingsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context){
+    var taskProvider = Provider.of<TaskProvider>(context);
+    var tasks = taskProvider.convertToOutput();
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Center(
@@ -83,7 +85,7 @@ class SettingsTab extends StatelessWidget {
               child: Text('get function')
             ),
             FilledButton(
-              onPressed: () => sendControlCommand(),
+              onPressed: () => sendControlCommand(tasks),
               child: Text('post function')
             ),
             SizedBox(height: 20),
