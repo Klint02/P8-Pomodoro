@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'TaskProvider.dart';
+import 'package:pip_boi/taskProvider.dart';
 import 'package:provider/provider.dart';
 
 class Album {
@@ -21,14 +21,16 @@ class Album {
   Map<String, dynamic> toJson() => {'id': id, 'title': title};
 }
 
-Future<void> getStatus() async {
+Future<String> getStatus() async {
   final response = await http.get(Uri.parse('http://localhost:3000/status'));
 
   if (response.statusCode == 200) {
     final data = json.decode(response.body);
     print('Status: $data');
+    return "Success";
   } else {
     print('Failed to connect');
+    return "Fail";
   }
   //return http.get(Uri.parse('http://localhost:3000/status'));
 }
@@ -63,11 +65,20 @@ Future<Album> sendControlCommand(List<Object> inputList) async {
 }
 
 
-class SettingsTab extends StatelessWidget {
+class SettingsTab extends StatefulWidget {
   const SettingsTab({super.key});
+
+
+  @override
+  State<SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends State<SettingsTab> {
+  String text = "get function";
 
   @override
   Widget build(BuildContext context){
+
     var taskProvider = Provider.of<TaskProvider>(context);
     var tasks = taskProvider.convertToOutput();
     return Scaffold(
@@ -81,8 +92,13 @@ class SettingsTab extends StatelessWidget {
                 child: Text('Connect to device')
             ),
             FilledButton(
-              onPressed: () => getStatus(),
-              child: Text('get function')
+              onPressed: () async {
+                String text2 = await getStatus();
+                setState(() {
+                  text = text2;
+                });
+                },
+              child: Text(text)
             ),
             FilledButton(
               onPressed: () => sendControlCommand(tasks),
