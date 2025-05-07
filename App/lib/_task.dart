@@ -21,4 +21,6 @@ class TaskOutput {
   bool isRecurring;
 
   TaskOutput(this.taskName, this.weekDay, this.startHour, this.startMinute, this.isRecurring);
+
+  Map<String, dynamic> toJson() => {'taskname':taskName, 'weekday': weekDay, 'starthour': startHour, 'startminute': startMinute, 'iscomplete': isComplete, 'isrecurring': isRecurring};
 }
