@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:pip_boi/taskProvider.dart';
 import 'package:provider/provider.dart';
 
+/*
 class Album { // test class for json mapping
   final int id;
   final String title;
@@ -20,6 +21,7 @@ class Album { // test class for json mapping
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title};
 }
+ */
 
 Future<String> getStatus() async {
   final response = await http.get(Uri.parse('http://localhost:3000/status'));

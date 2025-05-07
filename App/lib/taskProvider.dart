@@ -76,4 +76,9 @@ class TaskProvider extends ChangeNotifier {
 
     return temp;
   }
+
+  // Lav en funktion der opdaterer tasks ud fra info fra pomodoroen.
+  void UpdateFromInput() {
+
+  }
 }
