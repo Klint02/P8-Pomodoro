@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -58,12 +59,19 @@ Future<Album> sendControlCommand() async {
   }
 }
 
+=======
+import 'package:pip_boi/taskProvider.dart';
+import 'package:provider/provider.dart';
+>>>>>>> origin/app_merge
 
 class SettingsTab extends StatelessWidget {
   const SettingsTab({super.key});
 
+
+
   @override
   Widget build(BuildContext context){
+    var taskProvider = Provider.of<TaskProvider>(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Center(
@@ -71,7 +79,7 @@ class SettingsTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FilledButton(
-                onPressed: () {},
+                onPressed: () {taskProvider.convertToOutput();},
                 child: Text('Connect to device')
             ),
             FilledButton(

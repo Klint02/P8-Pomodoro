@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 
 class Task{
-  late String taskName;
-  late TimeOfDay time;
+  String taskName;
+  TimeOfDay startTime;
+  TimeOfDay endTime;
+  bool isChecked = false;
+  bool isRecurring = false;
+
+  Task(this.taskName, this.startTime, this.endTime);
 
 
-  Task(this.taskName, this.time);
+}
+
+class TaskOutput {
+  String taskName;
+  int weekDay;
+  int startHour;
+  int startMinute;
+  bool isComplete = false;
+  bool isRecurring;
+
+  TaskOutput(this.taskName, this.weekDay, this.startHour, this.startMinute, this.isRecurring);
 }
