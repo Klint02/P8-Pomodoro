@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pip_boi/_task.dart';
-import 'package:provider/provider.dart';
 
 class TaskProvider extends ChangeNotifier {
   List<List<Task>> week = List.generate(7, (_) => []);
