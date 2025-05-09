@@ -69,7 +69,13 @@ class TaskProvider extends ChangeNotifier {
     List<TaskOutput> temp = [];
     for (int i = 0; i < week.length; i++) {
       for (var task in week[i]) {
-        temp.add(TaskOutput(task.taskName, i, task.startTime.hour, task.startTime.minute, task.isRecurring));
+        temp.add(TaskOutput(
+          taskName: task.taskName,
+          weekDay: i,
+          startHour: task.startTime.hour,
+          startMinute: task.startTime.minute,
+          isRecurring: task.isRecurring,
+        ));
         print("${task.taskName} $i");
       }
     }

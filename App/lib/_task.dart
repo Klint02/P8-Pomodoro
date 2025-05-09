@@ -17,10 +17,45 @@ class TaskOutput {
   int weekDay;
   int startHour;
   int startMinute;
-  bool isComplete = false;
+  bool isComplete;
   bool isRecurring;
 
-  TaskOutput(this.taskName, this.weekDay, this.startHour, this.startMinute, this.isRecurring);
+  TaskOutput({
+    required this.taskName,
+    required this.weekDay,
+    required this.startHour,
+    required this.startMinute,
+    this.isComplete = false,
+    required this.isRecurring,
+  });
 
-  Map<String, dynamic> toJson() => {'taskname':taskName, 'weekday': weekDay, 'starthour': startHour, 'startminute': startMinute, 'iscomplete': isComplete, 'isrecurring': isRecurring};
+  Map<String, dynamic> toJson() => {
+    'taskName': taskName,
+    'weekDay': weekDay,
+    'startHour': startHour,
+    'startMinute': startMinute,
+    'isComplete': isComplete,
+    'isRecurring': isRecurring
+  };
+
+  factory TaskOutput.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {
+        'taskName' : String _taskName,
+        'weekDay' : int _weekDay,
+        'startHour' : int _startHour,
+        'startMinute' : int _startMinute,
+        'isComplete' : bool _isComplete,
+        'isRecurring' : bool _isRecurring
+      } => TaskOutput(
+        taskName: _taskName,
+        weekDay: _weekDay,
+        startHour: _startHour,
+        startMinute: _startMinute,
+        isComplete: _isComplete,
+        isRecurring: _isRecurring
+      ),
+      _ => throw const FormatException('Failed to map json to task.'),
+    };
+  }
 }
