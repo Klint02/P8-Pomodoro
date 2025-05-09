@@ -153,26 +153,30 @@ class _TasklistState extends State<Tasklist> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(7, (index) {
-                return TextButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedDay = index;
-                    });
-                  },
-                  child: Text(
-                    '${firstDay.add(Duration(days: index)).day}/${firstDay.add(Duration(days: index)).month}', // Displaying 1 to 7 for days
-                    style: TextStyle(
-                      fontWeight: selectedDay == index
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: selectedDay == index ? Colors.blue : Colors.black,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(7, (index) {
+                  return TextButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedDay = index;
+                      });
+                    },
+                    child: Text(
+                      '${firstDay.add(Duration(days: index)).day}/${firstDay.add(Duration(days: index)).month}', // Displaying 1 to 7 for days
+                      style: TextStyle(
+                        fontWeight: selectedDay == index
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color:
+                        selectedDay == index ? Colors.blue : Colors.black,
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
             const Text("Task for today:"),
             Expanded(
