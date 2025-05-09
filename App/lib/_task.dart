@@ -36,6 +36,7 @@ class TaskOutput {
     'weekDay': weekDay,
     'startHour': startHour,
     'startMinute': startMinute,
+    'duration': duration,
     'isComplete': isComplete,
     'isRecurring': isRecurring
   };

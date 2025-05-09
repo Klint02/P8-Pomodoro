@@ -20,7 +20,6 @@ class TaskProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
-    print(input.taskName);
   }
 
   void changeTask(Task input, int dayIndex, int taskIndex) {
@@ -88,7 +87,6 @@ class TaskProvider extends ChangeNotifier {
           duration: _findDuration(task.startTime, task.endTime),
           isRecurring: task.isRecurring,
         ));
-        print("${_findDuration(task.startTime, task.endTime)} $i");
       }
     }
 
