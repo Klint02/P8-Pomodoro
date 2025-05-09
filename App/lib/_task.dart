@@ -17,6 +17,7 @@ class TaskOutput {
   int weekDay;
   int startHour;
   int startMinute;
+  int duration;
   bool isComplete;
   bool isRecurring;
 
@@ -25,6 +26,7 @@ class TaskOutput {
     required this.weekDay,
     required this.startHour,
     required this.startMinute,
+    required this.duration,
     this.isComplete = false,
     required this.isRecurring,
   });
@@ -45,6 +47,7 @@ class TaskOutput {
         'weekDay' : int _weekDay,
         'startHour' : int _startHour,
         'startMinute' : int _startMinute,
+        'duration' : int _duration,
         'isComplete' : bool _isComplete,
         'isRecurring' : bool _isRecurring
       } => TaskOutput(
@@ -52,6 +55,7 @@ class TaskOutput {
         weekDay: _weekDay,
         startHour: _startHour,
         startMinute: _startMinute,
+        duration: _duration,
         isComplete: _isComplete,
         isRecurring: _isRecurring
       ),

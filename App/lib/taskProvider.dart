@@ -68,6 +68,14 @@ class TaskProvider extends ChangeNotifier {
     return week[dayIndex];
   }
 
+  int _findDuration(TimeOfDay start, TimeOfDay end) {
+    int startInMinutes = start.hour * 60 + start.minute;
+    int endInMinutes = end.hour * 60 + end.minute;
+
+    int difference = endInMinutes - startInMinutes;
+    return difference;
+  }
+
   List<TaskOutput> convertToOutput() {
     List<TaskOutput> temp = [];
     for (int i = 0; i < week.length; i++) {
@@ -77,9 +85,10 @@ class TaskProvider extends ChangeNotifier {
           weekDay: i,
           startHour: task.startTime.hour,
           startMinute: task.startTime.minute,
+          duration: _findDuration(task.startTime, task.endTime),
           isRecurring: task.isRecurring,
         ));
-        print("${task.taskName} $i");
+        print("${_findDuration(task.startTime, task.endTime)} $i");
       }
     }
 
