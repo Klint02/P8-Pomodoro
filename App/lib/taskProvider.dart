@@ -11,7 +11,8 @@ class TaskProvider extends ChangeNotifier {
     }
     else {
       for (int i = 0; i < week[dayIndex].length; i++) {
-        if (input.startTime.isBefore(week[dayIndex][i].startTime)) {
+        if (input.startTime.isBefore(week[dayIndex][i].startTime) ||
+            input.startTime.isAtSameTimeAs(week[dayIndex][i].startTime)) {
 
           week[dayIndex].insert(i, input);
           break;
@@ -19,6 +20,7 @@ class TaskProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    print(input.taskName);
   }
 
   void changeTask(Task input, int dayIndex, int taskIndex) {
@@ -35,7 +37,8 @@ class TaskProvider extends ChangeNotifier {
     }
     else {
       for (int i = 0; i < week[dayIndex].length; i++) {
-        if (input.startTime.isBefore(week[dayIndex][i].startTime)) {
+        if (input.startTime.isBefore(week[dayIndex][i].startTime) ||
+            input.startTime.isAtSameTimeAs(week[dayIndex][i].startTime)) {
           _moveTask(i, taskIndex, dayIndex, input);
           break;
         }
