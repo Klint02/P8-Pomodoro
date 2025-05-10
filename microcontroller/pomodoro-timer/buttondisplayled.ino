@@ -2,9 +2,16 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "pomodoro.h"
+#include <vector>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+// CONSTANTS RELATED TO DISPLAY
+const int CHAR_WIDTH = 12; // approximate width for textsize 2
+const int MAX_SCROLL_WIDTH = 124; // max scroll width for textsize 2
+int scrollResetX;
+int scrollX = 0; // X position for scrolling text
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -17,32 +24,67 @@ bool lastButtonState = HIGH; // Button state is set to HIGH by default
 // Time variables
 unsigned long pressTime = 0; // Time when the button was pressed
 unsigned long releaseTime = 0; // Time when the button was released
-unsigned long lastClickTime = 0; // Time of the last click
-unsigned long lastToggleTime = 0; // Time of the last LED toggle (for blinking)
+
 unsigned long currentTime = 0; // Current time in milliseconds
 unsigned long lastTimerUpdateTime = 0; // Last time the timer was updated
-int timerMinutes = 25; // Timer duration in minutes
+unsigned long secSinceStart = 0; // Seconds since the timer started
+int timerMinutes = 1; // Timer duration in minutes
 int timerSeconds = 0; // Timer duration in seconds
 
 // Indicators for button state
 bool longPressHandled = false; // Indicates if a long press has been handled
-bool singlePressPending = false; // Indicates if a single press is pending
 
 // LED STATE, MODE and TIMER RUNNING STATE
-bool ledState = true; // LED state (true = ON, false = OFF)
+//bool ledState = true; // LED state (true = ON, false = OFF)
 bool timerRunning = false; // Timer running state (true = running, false = not running)
 // Mode of operation
-// 0 = normal mode, 1 == fast blink, 2 == slow blink - default is normal mode
 int mode = 0;
+int selectedIcon = 0; // 0 = left, 1 = center, 2 = right
 
 // TIMING CONSTANTS
 const unsigned long debounceDelay = 50;
 const unsigned long longPressThreshold = 800;    // ms
-const unsigned long doubleClickThreshold = 300;  // ms
 
-// Function to setup the button and LED
+// NETWORK CONSTANTS
+const char* ssid = "My Super Network"; // WiFi SSID
+const char* ip = "192.168.0.1"; // Server address
+
+// Enum for menu selection 
+enum MenuSelection {
+    MENU_POMODORO,
+    MENU_TROPHY,
+    MENU_SETTINGS,
+    NUM_MENU_ITEMS
+};
+
+// Enum for SCREEN STATES
+enum AppState {
+    INTRO_SCREEN,
+    MENU_SCREEN,
+    TASK_SCREEN,
+    TIMER_RUNNING_SCREEN,
+    TASK_DONE,
+    SYNC_SCREEN,
+    TROPHY_SCREEN
+};
+
+// String constants for tasks and trophies
+std::vector<String> tasks = {
+  "Buy birthday present", 
+  "Cleaning", 
+  "Pick up kids", 
+  "Groceries"};
+int taskNum = 0;
+String question = "Click the button to start task";
+int totalTrophies = 10;
+int dailyTasksCompleted = 0;
+
+
+AppState currentState = INTRO_SCREEN; // Initialize the current state to MENU_SCREEN
+
+// Function to setup the button and display
 // and initialize the serial communication
-// and set the LED to LOW WHICH INDICATES LED IS TURNED ON (BECAUSE OF ACTIVE LOW)
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -53,40 +95,29 @@ void setup() {
     for(;;);
   }
 
-
   pinMode(buttonPin, INPUT_PULLUP); // Set button pin as input with pull-up resistor
-  pinMode(BUILTIN_LED, OUTPUT);  // initialize onboard LED as output
-  
 
   // Startup procedure
   showPomodoroStartScreen(); // Show the pomodoro image on the screen
   delay(2000); // Wait for 2 seconds
-  digitalWrite(BUILTIN_LED, LOW); // Turn on the LED (active low)
-  delay(2000);
+  currentState = MENU_SCREEN; // Set the current state to MENU_SCREEN
+  showMenuScreen(); // Show the menu screen  
 }
 
 // Main loop function
-// It reads the button state, handles long press, single press, and updates LED mode
-
+// It reads the button state, handles long press, single press, and updates timer and screen
 
 void loop() {
-//    char buffer[32];
-//    sprintf(buffer, "Now in mode: %d", mode);
-//    showTextScreen(buffer);
-    // this sequence of functions register the three different button interactions
-    updateButtonState();
-    handleLongPress();
-    handleButtonRelease();
-    handleSinglePressTimeout();
-    // this function changes screen or triggers timer depending on button presses
-    //updateLEDMode();
-    updateTimer();
-    updateScreenMode();
-    finalizeButtonState();
+    updateButtonState(); // Detect press start
+    handleLongPress();   // Trigger long press action
+    handleButtonRelease(); // Detect and handle short press
+    updateTimer(); // Update the timer if running
+    updateScreenMode(); // Update the screen based on the current mode
+    finalizeButtonState(); // Debounce cleanup
     delay(10); // Small delay to avoid excessive CPU usage
 }
 
-
+    
 void updateButtonState() {
     buttonState = digitalRead(buttonPin);
     currentTime = millis();
@@ -100,12 +131,38 @@ void updateButtonState() {
 void handleLongPress() {
     if (buttonState == LOW && !longPressHandled && (currentTime - pressTime > longPressThreshold)) {
         Serial.println("Long press detected");
-        if (timerRunning) {
-            Serial.println("Stopping Pomodoro Timer");
-            timerRunning = false; // Set timer running state to false
-            showCenteredMessage("Timer stopped"); // Show message if timer is stopped
-            delay(2000); // Wait for 2 seconds before showing the next screen
-            mode = 0; // Switch back to normal mode
+
+        switch (currentState) {
+            case MENU_SCREEN:
+                selectedIcon = static_cast<MenuSelection>((selectedIcon + 1) % NUM_MENU_ITEMS); // Cycle through menu items
+                Serial.print("Selected menu item: ");
+                Serial.println(selectedIcon);
+                break;
+            case TASK_SCREEN:
+            // Return to menu screen
+                Serial.println("Returning to menu screen");
+                currentState = MENU_SCREEN;
+                break;
+            case TIMER_RUNNING_SCREEN:
+                Serial.println("Stopping Pomodoro Timer");
+                timerRunning = false; // Set timer running state to false
+                showCenteredMessage("Timer stopped"); // Show message if timer is stopped
+                delay(2000); // Wait for 2 seconds before showing the next screen
+                currentState = TASK_SCREEN; // Switch back to normal mode
+                break;
+            case TASK_DONE:
+                Serial.println("Returning to task selection");
+                taskNum = 0; // Reset task number
+                currentState = MENU_SCREEN; // Switch back to menu screen
+                break;
+            case TROPHY_SCREEN:
+                Serial.println("Returning to menu screen");
+                currentState = MENU_SCREEN; // Switch back to menu screen
+                break;
+            case SYNC_SCREEN:
+                Serial.println("Returning to menu screen");
+                currentState = MENU_SCREEN; // Switch back to menu screen
+                break;
         }
         longPressHandled = true; // Mark long press as handled
     }
@@ -115,111 +172,138 @@ void handleButtonRelease() {
     if (buttonState == HIGH && lastButtonState == LOW) {
         releaseTime = currentTime;
         if (!longPressHandled) {
-          if (releaseTime - lastClickTime < doubleClickThreshold) {
-            Serial.println("Double press detected");
-            mode = (mode +1) % 2; // Cycle through modes 0, 1, 2
-            singlePressPending = false;
-            lastClickTime = 0;
-          } else {
-            singlePressPending = true; // Set single press pending
-            lastClickTime = currentTime; // Update last click time
+            Serial.println("Single press detected");
+            handleSinglePress();
           }
-        }
     }
 }
 
-void handleSinglePressTimeout() {
-    if (singlePressPending && (currentTime - lastClickTime > doubleClickThreshold)) {
-        if (buttonState == HIGH) { // Only consider it a single press if the button is released
-            Serial.println("Single press detected");
+void handleSinglePress() {
+    Serial.println("Single press detected");
 
-            if (mode == 1 && !timerRunning) {
-                timerMinutes = 25; // Reset timer to 25 minutes
+    switch (currentState) {
+
+        case (MENU_SCREEN): {
+
+            switch (selectedIcon) {
+                case MENU_POMODORO:
+                    Serial.println("Entering task screen");
+                    prepareTaskScreen(); // Prepare the task screen
+                    currentState = TASK_SCREEN; // Switch to task screen
+                    break;
+                case MENU_TROPHY:
+                    Serial.println("Entering trophy screen");
+                    currentState = TROPHY_SCREEN; // Switch to trophy screen
+                    break;
+                case MENU_SETTINGS:
+                    Serial.println("Entering settings screen");
+                    currentState = SYNC_SCREEN; // Switch to settings screen
+                    break;
+            }
+            break;
+        }
+        case (TASK_SCREEN):
+
+            if (timerRunning) {
+                Serial.println("Timer is already running");
+                showCenteredMessage("Switching to timer running screen");
+                delay(2000); // Wait for 2 seconds
+                currentState = TIMER_RUNNING_SCREEN; // Switch to timer running state
+            } else {
+                Serial.println("Starting Pomodoro timer");
+                prepareTaskScreen(); // Prepare the task screen
+                showCenteredMessage("Pomodoro timer started");
+                timerMinutes = 1; // Reset timer to 25 minutes
                 timerSeconds = 0; // Reset seconds to 0
                 lastTimerUpdateTime = millis(); // Reset last timer update time
-                timerRunning = true; // Set timer running state to true
-                Serial.println("Staring Pomodoro Timer");
+                timerRunning = true; // Start the timer
+                currentState = TIMER_RUNNING_SCREEN; // Switch to timer running state
+                Serial.println("Pomodoro timer started");
             }
+            break;
 
-            singlePressPending = false; // Reset single press pending
-            lastClickTime = 0;
-        }
-    }
-}
-
-/*
-void updateLEDMode() {
-    if (mode == 1) { // Fast blink mode
-        if (currentTime - lastToggleTime >= 1000) { // Blink every 100 ms
-            ledState = !ledState; // Toggle LED state
-            digitalWrite(BUILTIN_LED, ledState ? LOW : HIGH); // Set LED state
-            lastToggleTime = currentTime; // Update last toggle time
-        }
-    } else if (mode == 2) { // Slow blink mode
-        if (currentTime - lastToggleTime >= 3000) { // Blink every 500 ms
-            ledState = !ledState; // Toggle LED state
-            digitalWrite(BUILTIN_LED, ledState ? LOW : HIGH); // Set LED state
-            lastToggleTime = currentTime; // Update last toggle time
-        }
-    } else { // Normal mode
-        digitalWrite(BUILTIN_LED, ledState ? LOW : HIGH); // Set LED state based on ledState
-    }
-}
-*/
-
-void pomodoroTimer() {
-    int pomodoroDuration = 25 * 60; // 25 minutes in seconds
-    int breakDuration = 5 * 60; // 5 minutes in seconds
-    int longBreakDuration = 15 * 60; // 15 minutes in seconds
-    int cycles = 4; // Number of pomodoro cycles before a long break
-    int pomodoroCount = 0; // Counter for completed pomodoros
-    int minutes = 25;
-    int seconds = 0; // Initialize seconds to 0
-
-    while ((minutes != 0 || seconds != 0) && timerRunning) {
-        delay(1000); // Wait for 1 second
-        showTimerScreen(minutes, seconds); // Update the timer screen
-
-        if (seconds <= 0) {
-            if (minutes > 0) {
-                minutes--;
-                seconds = 59; // Reset seconds to 59
+        case (TIMER_RUNNING_SCREEN): 
+            Serial.println("Timer running screen");
+            if (timerRunning) {
+                timerRunning = false; // Stop the timer
+                showCenteredMessage("Pomodoro timer stopped");
+                delay(2000); // Wait for 2 seconds
+                startNextTask(); // Start the next task
             } else {
-                break; // Exit the loop when time is up
+                Serial.println("Timer is not running");
+                showCenteredMessage("Pomodoro timer not running");
+                delay(2000); // Wait for 2 seconds
             }
-        } else {
-            seconds--;
-        }
+            break;
+
+        case (TASK_DONE): 
+            Serial.println("All tasks done");
+            showCenteredMessage("All tasks done");
+            delay(2000); // Wait for 2 seconds
+            currentState = MENU_SCREEN; // Switch back to menu screen
+            break;
+        
+        case (SYNC_SCREEN): 
+            Serial.println("Syncing tasks...");
+            showCenteredMessage("Syncing tasks...");
+            delay(2000); // Wait for 2 seconds
+            currentState = MENU_SCREEN; // Switch back to menu screen
+            break;
+        
+        case (TROPHY_SCREEN): 
+            Serial.println("Trophy screen");
+            showCenteredMessage("Trophy unlocked!");
+            delay(2000); // Wait for 2 seconds
+            currentState = MENU_SCREEN; // Switch back to menu screen
+            break;
+        
+    } 
+}
+
+
+void startNextTask() {
+    taskNum++;
+    if (taskNum >= tasks.size()) {
+        taskNum = tasks.size();
+        currentState = TASK_DONE;
+        return;
     }
+    // Reset scroll position and timer
+    scrollResetX = -CHAR_WIDTH * tasks[taskNum].length();
+    scrollX = SCREEN_WIDTH;
+    timerMinutes = 1;
+    timerSeconds = 0;
+    secSinceStart = 0;
+    currentState = TASK_SCREEN;
+}
 
-        if (!timerRunning) {
-            showCenteredMessage("Timer stopped"); // Show message if timer is stopped
-        } else {
-            showCenteredMessage("Pomodoro finished!"); // Show message when timer is finished
-        }
+int calcBarPct() {
+    return round((float)secSinceStart / 1500 * 124);  // 1500 = 25*60 seconds
+}
 
-        delay(2000); // Wait for 2 seconds before showing the next screen
-        timerRunning = false; // Set timer running state to false
-        mode = 0; // Switch back to normal mode
-        pomodoroCount++; // Increment the pomodoro count
-        if (pomodoroCount >= cycles) {
-            pomodoroCount = 0; // Reset the pomodoro count
-            minutes = longBreakDuration / 60; // Set to long break duration
-        } else {
-            minutes = breakDuration / 60; // Set to short break duration
-        }
-        seconds = 0; // Reset seconds to 0
+void prepareTaskScreen() {
+    if (taskNum < tasks.size()) {
+        scrollResetX= -CHAR_WIDTH * tasks[taskNum].length();
+        scrollX = SCREEN_WIDTH; // Reset scroll position
+    } else {
+        scrollResetX = 0; // Reset scroll position
+        scrollX = 0; // Reset scroll position
     }
-
+}
 
 void updateTimer() {
     if (timerRunning && millis() - lastTimerUpdateTime >= 1000) {
-        lastTimerUpdateTime = millis(); 
+        lastTimerUpdateTime = millis();
+        secSinceStart++;
         if (timerSeconds == 0) {
             if (timerMinutes == 0) {
                 timerRunning = false; // Stop the timer when it reaches 0
                 showCenteredMessage("Pomodoro done!");
                 delay(2000); // Wait for 2 seconds
+                dailyTasksCompleted++;
+                totalTrophies++;
+                currentState = TASK_SCREEN; // Switch back to task screen
+                taskNum++;
                 mode = 0; // Switch back to normal mode
                 return;
             } else {
@@ -228,19 +312,32 @@ void updateTimer() {
         } } else {
             timerSeconds--;
         }
-        showTimerScreen(timerMinutes, timerSeconds); // Update the timer screen
+        showTimerScreen(tasks[taskNum], timerMinutes, timerSeconds); // Update the timer screen
     }
 }
 
 void updateScreenMode() {
     if (timerRunning) return;
-    switch (mode) {
-        case 0: // Normal mode
-            showTextScreen("Task info or choose task screen");
+    switch (currentState) {
+        case MENU_SCREEN: // Show menu screen
+            showMenuScreen();
             break;
-        case 1: // Fast blink mode
+        case TASK_SCREEN: // Show task screen
+            updateScrollPosition(tasks[taskNum]);
+            showCurrentTask(tasks[taskNum]);
+            break;
+        case TIMER_RUNNING_SCREEN: // Show timer running screen
             showPomodoroTimerScreen();
-        break;
+            break;
+        case TASK_DONE: // Show task done screen
+            showAllTasksDone();
+            break;
+        case SYNC_SCREEN: // Show sync screen
+            showSyncScreen();
+            break;
+        case TROPHY_SCREEN: // Show trophy screen
+            showTrophyScreen();
+            break;
         default:
             showTextScreen("Unknown mode");
             break;
@@ -261,6 +358,47 @@ void showIntroScreen() {
   display.display();
 }
 
+void showTrophyScreen() {
+    display.clearDisplay();
+
+    // Display total trophy count as number
+    display.setTextSize(3);
+    display.setTextColor(WHITE);
+    display.setCursor(5, 10);
+    display.println(totalTrophies);
+
+    // Printing the number of tasks completed today out of all daily tasks
+
+    display.setTextSize(1);
+    display.setCursor(0, 48);
+    display.print("Tasks completed today: ");
+    display.setCursor(0, 56);
+    display.print(dailyTasksCompleted);
+    display.print("/");
+    display.print(tasks.size());
+
+
+    // Draw trophy icon
+    display.drawBitmap(90, 10, trophy, 32, 32, WHITE);
+
+    display.display();
+}
+
+void showSyncScreen() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("SSID: ");
+    display.print(ssid);
+    display.setCursor(0, 30);
+    display.println("IP: ");
+    display.print(ip);
+    display.setCursor(0, 50);
+    display.println("Syncing...");
+    display.display();
+}
+
 void showTextScreen(const char* msg) {
   display.clearDisplay();
   display.setCursor(0,0);
@@ -272,7 +410,9 @@ void showTextScreen(const char* msg) {
 
 void showPomodoroStartScreen() {
   display.clearDisplay();
-  display.drawBitmap(0, 0, pomodoropic, 128, 64, WHITE);
+  int x = (SCREEN_WIDTH - 64) / 2;  // 32
+  int y = (SCREEN_HEIGHT - 64) / 2; // 0
+  display.drawBitmap(x, y, pomodoropic, 64, 64, WHITE);
   display.display();
 }
 
@@ -285,19 +425,26 @@ void showPomodoroTimerScreen() {
   display.display();
 }
 
-void showTimerScreen(int min, int sec) {
+void showTimerScreen(const String& taskName, int min, int sec) {
   display.clearDisplay();
+
+  // Task name displayed at the top
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.setTextColor(WHITE);
-  display.print("Pomodoro: ");
+  display.print(taskName);
 
+  // Timer in large font
   display.setTextSize(2);
-  display.setCursor(0, 20);
+  display.setCursor(11, 32);
 
   char buf[6];
   sprintf(buf, "%02d:%02d", min, sec);
   display.print(buf);
+
+  // Draw hourglass icon
+  display.drawBitmap(82, 20, hourglass, 30, 40, WHITE);
+  
   display.display();
 }
 
@@ -322,4 +469,59 @@ void showCenteredMessage(const char* message) {
 
   display.println(message);
   display.display();
+}
+
+void showMenuScreen() {
+    display.clearDisplay();
+    display.drawBitmap(0, 0, menupic, 128, 42, WHITE);
+    display.fillRect(0, 43, 128, 5, BLACK);
+
+    // Draw selection line
+    int iconWidth = 42;
+    int xStart = selectedIcon * iconWidth + 5; 
+    int xEnd = xStart + iconWidth - 10;
+    int y = 47;
+
+    display.drawLine(xStart, y, xEnd, y, WHITE);
+    display.display();
+}
+
+void showAllTasksDone(){
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.setTextSize(2);
+    display.print("Great job!");
+    display.setCursor(0,30);
+    display.setTextWrap(true);
+    display.print("All tasks complete");
+    display.display();
+    display.setTextWrap(false);
+  }
+
+void updateScrollPosition(const String& text) {
+    if (CHAR_WIDTH * text.length() > MAX_SCROLL_WIDTH) {
+        if (scrollX < scrollResetX) {
+            scrollX = SCREEN_WIDTH;
+        } else {
+            scrollX--;
+        } 
+    } else {
+        scrollX = 0; // Reset scroll position if text fits
+    }
+}   
+
+void showCurrentTask(const String& taskText) {
+    Serial.println("Displaying task: " + tasks[taskNum]);
+    Serial.print("Scroll position: ");
+    Serial.println(scrollX);
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("Next task: ");
+    display.setTextSize(2);
+    display.setCursor(scrollX, 24);
+    display.print(taskText);
+    display.setTextSize(1);
+    display.setCursor(0, 56);
+    display.print("Press to start task");
+    display.display();    
 }
