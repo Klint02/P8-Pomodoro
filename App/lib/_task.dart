@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+int _lastId = 0;
+int _getNextId() => ++_lastId;
 
 class Task{
   String taskName;
   TimeOfDay startTime;
   TimeOfDay endTime;
+  final int id;
   bool isChecked = false;
   bool isRecurring = false;
 
-  Task(this.taskName, this.startTime, this.endTime);
-
-
+  Task({
+    required this.taskName,
+    required this.startTime,
+    required this.endTime,
+  }) : id = _getNextId();
 }
 
 class TaskOutput {
   String taskName;
+  int id;
   int weekDay;
   int startHour;
   int startMinute;
@@ -23,6 +29,7 @@ class TaskOutput {
 
   TaskOutput({
     required this.taskName,
+    required this.id,
     required this.weekDay,
     required this.startHour,
     required this.startMinute,
@@ -33,6 +40,7 @@ class TaskOutput {
 
   Map<String, dynamic> toJson() => {
     'taskName': taskName,
+    'id': id,
     'weekDay': weekDay,
     'startHour': startHour,
     'startMinute': startMinute,
@@ -45,6 +53,7 @@ class TaskOutput {
     return switch (json) {
       {
         'taskName' : String _taskName,
+        'id' : int _id,
         'weekDay' : int _weekDay,
         'startHour' : int _startHour,
         'startMinute' : int _startMinute,
@@ -53,6 +62,7 @@ class TaskOutput {
         'isRecurring' : bool _isRecurring
       } => TaskOutput(
         taskName: _taskName,
+        id: _id,
         weekDay: _weekDay,
         startHour: _startHour,
         startMinute: _startMinute,

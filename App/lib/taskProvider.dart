@@ -81,6 +81,7 @@ class TaskProvider extends ChangeNotifier {
       for (var task in week[i]) {
         temp.add(TaskOutput(
           taskName: task.taskName,
+          id: task.id,
           weekDay: i,
           startHour: task.startTime.hour,
           startMinute: task.startTime.minute,

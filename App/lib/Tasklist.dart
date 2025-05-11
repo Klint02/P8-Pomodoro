@@ -109,7 +109,8 @@ class _TasklistState extends State<Tasklist> {
                 TextButton(
                   onPressed: () {
                     taskProvider.removeTask(selectedDay, index);
-                    Navigator.of(context).pop(Task("", startTime, endTime));
+                    Navigator.of(context).pop(
+                        Task(taskName: "", startTime: startTime, endTime: endTime));
                     controller.clear();
                   },
                   child: const Text(
@@ -123,15 +124,18 @@ class _TasklistState extends State<Tasklist> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(Task("", startTime, endTime));
+              Navigator.of(context).pop(
+                  Task(taskName: "", startTime: startTime, endTime: endTime));
               controller.clear();
             },
             child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context)
-                  .pop(Task(controller.text, startTime, endTime));
+              Navigator.of(context).pop(Task(
+                  taskName: controller.text,
+                  startTime: startTime,
+                  endTime: endTime));
               controller.clear();
             },
             child: const Text("Enter"),
