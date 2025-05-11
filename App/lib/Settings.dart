@@ -102,7 +102,7 @@ class _SettingsTabState extends State<SettingsTab> {
             FilledButton(
                 onPressed: () async {
                   responseList = await receiveTasks();
-                  taskProvider.UpdateFromInput(responseList);
+                  taskProvider.updateFromInput(responseList);
                   },
                 child: Text('Sync device')
             ),

@@ -7,7 +7,7 @@ class Task{
   TimeOfDay startTime;
   TimeOfDay endTime;
   final int id;
-  bool isChecked = false;
+  bool isComplete = false;
   bool isRecurring = false;
 
   Task({
