@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:pip_boi/taskProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:pip_boi/_task.dart';
 
 /*
 class Album { // test class for json mapping
@@ -36,15 +37,25 @@ Future<String> getStatus() async {
   }
 }
 
+Future<List<TaskOutput>> receiveTasks() async {
+  final response = await http.get(Uri.parse('http://localhost:3000/status'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    print('Received: $data');
+    return data.map((item) => TaskOutput.fromJson(item)).toList();;
+  } else {
+    print('Failed to connect');
+    return [];
+  }
+}
+
 Future<String> sendControlCommand(List<Object> inputList) async {
   // Album createdAlbum = Album(id: 1, title: 'Test Album');
   // Album createdAlbum2 = Album(id: 2, title: 'Test Album 2');
   // Album createdAlbum3 = Album(id: 3, title: 'Test Album 3');
 
   // List<Album> albums = [createdAlbum, createdAlbum2, createdAlbum3];
-
-  
-
   final response = await http.post(
     Uri.parse('http://localhost:3000/control'),
     headers: <String, String>{
@@ -79,7 +90,7 @@ class _SettingsTabState extends State<SettingsTab> {
 
   @override
   Widget build(BuildContext context){
-
+    List<TaskOutput> responseList = [];
     var taskProvider = Provider.of<TaskProvider>(context);
     var tasks = taskProvider.convertToOutput();
     return Scaffold(
@@ -89,8 +100,11 @@ class _SettingsTabState extends State<SettingsTab> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FilledButton(
-                onPressed: () {},
-                child: Text('Connect to device')
+                onPressed: () async {
+                  responseList = await receiveTasks();
+                  taskProvider.UpdateFromInput(responseList);
+                  },
+                child: Text('Sync device')
             ),
             FilledButton(
               onPressed: () async {

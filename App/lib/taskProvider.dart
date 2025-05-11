@@ -95,7 +95,23 @@ class TaskProvider extends ChangeNotifier {
   }
 
   // Lav en funktion der opdaterer tasks ud fra info fra pomodoroen.
-  void UpdateFromInput() {
+  void UpdateFromInput(List<TaskOutput> inputList) {
+    for (var task in inputList) {
+      print('Updating: '
+          'taskName=${task.taskName}, id=${task.id}, '
+          'weekDay=${task.weekDay}, start=${task.startHour}:${task.startMinute}, '
+          'duration=${task.duration}, isComplete=${task.isComplete}');
 
+      if (task.isComplete) {
+        final dayTasks = week[task.weekDay];
+        final index = dayTasks.indexWhere((t) => t.id == task.id);
+
+        if (index != -1) {
+          dayTasks[index].isChecked = true;
+        } else {
+          print('Task with id=${task.id} not found in week[${task.weekDay}].');
+        }
+      }
+    }
   }
 }
