@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -24,21 +26,23 @@ class Album { // test class for json mapping
 }
  */
 
-Future<String> getStatus() async {
-  final response = await http.get(Uri.parse('http://localhost:3000/status'));
-
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    print('Status: $data');
-    return "Success";
-  } else {
-    print('Failed to connect');
-    return "Fail";
+Future<bool> getStatus() async {
+  try {
+    final response = await http.get(Uri.parse('http://localhost:3000/status'));
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('Failed to connect');
+      return false;
+    }
+  } catch (e) {
+    print(e);
+    return false;
   }
 }
 
 Future<List<TaskOutput>> receiveTasks() async {
-  final response = await http.get(Uri.parse('http://localhost:3000/status'));
+  final response = await http.get(Uri.parse('http://localhost:3000/receive'));
 
   if (response.statusCode == 200) {
     final List<dynamic> data = json.decode(response.body);
@@ -50,18 +54,14 @@ Future<List<TaskOutput>> receiveTasks() async {
   }
 }
 
-Future<String> sendControlCommand(List<Object> inputList) async {
-  // Album createdAlbum = Album(id: 1, title: 'Test Album');
-  // Album createdAlbum2 = Album(id: 2, title: 'Test Album 2');
-  // Album createdAlbum3 = Album(id: 3, title: 'Test Album 3');
+Future<String> sendTasks(List<Object> inputList) async {
 
-  // List<Album> albums = [createdAlbum, createdAlbum2, createdAlbum3];
   final response = await http.post(
-    Uri.parse('http://localhost:3000/control'),
+    Uri.parse('http://localhost:3000/send'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(inputList), // albums.map((album) => album.toJson()).toList()
+    body: jsonEncode(inputList),
   );
 
   if (response.statusCode == 200) {
@@ -86,13 +86,16 @@ class SettingsTab extends StatefulWidget {
 }
 
 class _SettingsTabState extends State<SettingsTab> {
-  String text = "get function";
+  String responseText = "";
 
   @override
   Widget build(BuildContext context){
+
     List<TaskOutput> responseList = [];
     var taskProvider = Provider.of<TaskProvider>(context);
     var tasks = taskProvider.convertToOutput();
+
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Center(
@@ -104,20 +107,26 @@ class _SettingsTabState extends State<SettingsTab> {
                   responseList = await receiveTasks();
                   taskProvider.updateFromInput(responseList);
                   },
-                child: Text('Sync device')
+                child: Text('Synchronize tasks with device')
             ),
             FilledButton(
               onPressed: () async {
-                String text2 = await getStatus();
+                bool response = await getStatus();
                 setState(() {
-                  text = text2;
+                  if(response) {
+                    responseText = "You are connected to the device";
+                  } else {
+                    responseText = "No connection to device"
+                        "Make sure the device is powered on and on the same wifi";
+                  }
                 });
                 },
-              child: Text(text)
+              child: Text("Check device connection")
             ),
+            Text(responseText),
             FilledButton(
-              onPressed: () => sendControlCommand(tasks),
-              child: Text('post function')
+              onPressed: () => sendTasks(tasks),
+              child: Text('Send tasks to device')
             ),
             SizedBox(height: 20),
           ],

@@ -18,13 +18,19 @@ app.use((req, res, next) => {
 });
 
 // Simulate Arduino's response to GET request
-app.get('/status', (_, res) => {
+app.get('/receive', (_, res) => {
   res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
   res.json(test);
 });
 
+app.get('/status', (_, res) => {
+  res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
+  res.status(200).json({});
+  console.log('Connection good');
+});
+
 // Simulate Arduino responding to a POST command
-app.post('/control', (req, res) => {
+app.post('/send', (req, res) => {
   res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
   if (!req.body || typeof req.body !== 'object') {
     console.error('Invalid control command received:', req.body);
