@@ -9,6 +9,7 @@ namespace task
     {
     public:
         std::string taskName;
+        int id;
         int weekDay = 1;
         int startHour = 12;
         int duration = 45;
@@ -106,6 +107,16 @@ namespace task
         
         int debug2(){
             return index;
+        }
+        void addTime(){
+            // add 25 min to timer.
+            tasks[index].timers.push_back(25);
+            tasks[index].duration += 25;
+        }
+        void taskDoneEarly(){
+            // stops timer and completes task if done early.
+            tasks[index].timers.clear();
+            TimerDone();
         }
     };
 }
