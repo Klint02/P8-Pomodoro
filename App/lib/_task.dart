@@ -14,6 +14,7 @@ class Task{
     required this.taskName,
     required this.startTime,
     required this.endTime,
+    required this.isRecurring
   }) : id = _getNextId();
 }
 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 class TaskProvider extends ChangeNotifier {
   List<List<Task>> week = List.generate(7, (_) => []);
+  List<Task> completedTasks = [];
 
   void addTask(Task input, int dayIndex) {
     if (week[dayIndex].isEmpty || input.startTime.isAfter(week[dayIndex].last.startTime)){
@@ -108,6 +109,8 @@ class TaskProvider extends ChangeNotifier {
 
         if (index != -1) {
           dayTasks[index].isComplete = true;
+          completedTasks.add(dayTasks[index]);
+          removeTask(task.weekDay, index);
         } else {
           print('Task with id=${task.id} not found in week[${task.weekDay}].');
         }
