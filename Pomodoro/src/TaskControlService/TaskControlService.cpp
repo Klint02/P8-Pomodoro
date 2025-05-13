@@ -1,23 +1,9 @@
-#include <vector>
 #include <iostream>
-#include <string>
+#include <vector>
+#include "TaskControlService.hpp"
 namespace task
 {
-    /*Class der skal gemme task info, manipulere tasks og trofæer*/
-
-    class Task
-    {
-    public:
-        std::string taskName;
-        int id;
-        int weekDay = 1;
-        int startHour = 12;
-        int duration = 45;
-        bool isComplete = false;
-        bool isRecurring = true;
-        std::vector<int> timers = {};
-
-        void init()
+        void Task::init()
         {
             int totalTime = this->duration;
             this->timers.clear();
@@ -35,20 +21,9 @@ namespace task
                 }
             }
         }
-    };
 
-    class TaskControlService
-    {
-    private:
-        int amountOfTasks=0;
-        int tasksComplete = 0;
-        int trophys = 0;
-        int index = 0;
 
-    public:
-        std::vector<Task> tasks = {};
-
-        void TimerDone()
+    void TaskControlService::TimerDone()
         {
             if (tasks[index].timers.size() > 0)
             {
@@ -61,13 +36,13 @@ namespace task
             }
         }
 
-        int NumberOfTasks(){
+        int TaskControlService::NumberOfTasks(){
             amountOfTasks = tasks.size();
          
             return amountOfTasks;
         }
 
-        void initTasks()
+        void TaskControlService::initTasks()
         {
             for (auto &task : tasks)
             {
@@ -75,7 +50,7 @@ namespace task
             }
         }
 
-        int TasksCompleted (){
+        int TaskControlService::TasksCompleted (){
             tasksComplete = 0;
             for (auto task : tasks)
             {
@@ -86,12 +61,12 @@ namespace task
             return tasksComplete;
         }
 
-        void NewTrophy()
+        void TaskControlService::NewTrophy()
         {
             trophys++;
         }
 
-        void debug()
+        void TaskControlService::debug()
         {
             std::cout << "Task timers:\n";
             for (int i = 0; i < this->tasks.size(); i++)
@@ -105,53 +80,19 @@ namespace task
             }
         }
         
-        int debug2(){
+        int TaskControlService::getIndex(){
             return index;
         }
-        void addTime(){
+        void TaskControlService::addTime(){
             // add 25 min to timer.
             tasks[index].timers.push_back(25);
             tasks[index].duration += 25;
         }
-        void taskDoneEarly(){
+        void TaskControlService::taskDoneEarly(){
             // stops timer and completes task if done early.
             tasks[index].timers.clear();
             TimerDone();
         }
-    };
+
 }
 
-int main()
-{
-
-    task::Task obj1;
-    task::Task obj2;
-    task::Task obj3;
-    task::TaskControlService t;
-
-    obj1.duration = 100;
-    obj2.duration = 45;
-    obj3.duration = 93;
-
-    t.tasks.push_back(obj1);
-    t.tasks.push_back(obj2);
-    t.tasks.push_back(obj3);
-
-    t.initTasks();
-
-    t.debug();
-    t.TimerDone();
-    t.debug();
-    t.TimerDone();
-    t.debug();
-    t.TimerDone();
-    t.debug();
-    t.TimerDone();
-    std::cout<<t.tasks[0].isComplete<<std::endl;
-    t.debug();
-    t.TimerDone();
-    t.debug();
-    std::cout<<t.tasks.size()<<std::endl;
-    
-    return 17;
-}
