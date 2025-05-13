@@ -14,7 +14,8 @@ class SettingsTab extends StatefulWidget {
 }
 
 class _SettingsTabState extends State<SettingsTab> {
-  String responseText = "";
+  String statusResponseText = "";
+  String sendResponseText = "";
 
   @override
   Widget build(BuildContext context) {
@@ -26,32 +27,51 @@ class _SettingsTabState extends State<SettingsTab> {
       appBar: AppBar(title: const Text('Settings')),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            FilledButton(
-                onPressed: () async {
-                  responseList = await receiveTasks();
-                  taskProvider.updateFromInput(responseList);
-                },
-                child: Text('Synchronize tasks with device')),
-            FilledButton(
-                onPressed: () async {
-                  bool response = await getStatus();
-                  setState(() {
-                    if (response) {
-                      responseText = "You are connected to the device";
-                    } else {
-                      responseText = "No connection to device"
-                          "Make sure the device is powered on and on the same wifi";
-                    }
-                  });
-                },
-                child: Text("Check device connection")),
-            Text(responseText),
-            FilledButton(
-                onPressed: () => sendTasks(tasks),
-                child: Text('Send tasks to device')),
-            SizedBox(height: 20),
+            Column(
+              children: [
+                FilledButton(
+                    onPressed: () async {
+                      responseList = await receiveTasks();
+                      taskProvider.updateFromInput(responseList);
+
+                      bool response = await sendTasks(tasks);
+                      setState(() {
+                        if (response) {
+                          sendResponseText =
+                          "Tasks sent to device";
+                        } else {
+                          sendResponseText =
+                          "Error sending tasks, check connection with device";
+                        }
+                      });
+                    },
+                    child: Text('Synchronize tasks with device')),
+                Text(sendResponseText),
+              ],
+            ),
+            Column(
+              children: [
+                FilledButton(
+                    onPressed: () async {
+                      bool response = await getStatus();
+                      setState(() {
+                        if (response) {
+                          statusResponseText =
+                              "You are connected to the device";
+                        } else {
+                          statusResponseText =
+                              "No connection to device, ensure the following: \n"
+                              " - The device is powered on \n"
+                              " - The phone is on the same wifi as the device";
+                        }
+                      });
+                    },
+                    child: Text("Check device connection")),
+                Text(statusResponseText),
+              ],
+            ),
           ],
         ),
       ),
