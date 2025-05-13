@@ -25,6 +25,7 @@ class TaskOutput {
   int startHour;
   int startMinute;
   int duration;
+  int timesCompleted;
   bool isComplete;
   bool isRecurring;
 
@@ -35,6 +36,7 @@ class TaskOutput {
     required this.startHour,
     required this.startMinute,
     required this.duration,
+    this.timesCompleted = 0,
     this.isComplete = false,
     required this.isRecurring,
   });
