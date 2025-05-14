@@ -33,6 +33,7 @@ int timerSeconds = 0; // Timer duration in seconds
 
 // Indicators for button state
 bool longPressHandled = false; // Indicates if a long press has been handled
+bool singlePressHandled = false; // Indicates if a single press has been handled
 
 // LED STATE, MODE and TIMER RUNNING STATE
 //bool ledState = true; // LED state (true = ON, false = OFF)
@@ -42,7 +43,7 @@ int mode = 0;
 int selectedIcon = 0; // 0 = left, 1 = center, 2 = right
 
 // TIMING CONSTANTS
-const unsigned long debounceDelay = 50;
+const unsigned long debounceDelay = 75;
 const unsigned long longPressThreshold = 800;    // ms
 
 // NETWORK CONSTANTS
@@ -65,8 +66,26 @@ enum AppState {
     TIMER_RUNNING_SCREEN,
     TASK_DONE,
     SYNC_SCREEN,
-    TROPHY_SCREEN
+    TROPHY_SCREEN,
+    TASK_COMPLETE_QUERY_SCREEN,
+    INTERRUPT_QUERY_SCREEN
 };
+
+enum InterruptChoice {
+    INTERRUPT_PAUSE,
+    INTERRUPT_DONE,
+    INTERRUPT_RESUME,
+    NUM_INTERRUPT_CHOICES
+};
+
+enum TaskCompleteQuery {
+    TASK_COMPLETE,
+    TASK_EXTEND,
+    NUM_TASK_COMPLETE_CHOICES
+};
+
+TaskCompleteQuery taskCompleteQuery = TASK_COMPLETE; // Default choice for task completion
+InterruptChoice interruptChoice = INTERRUPT_PAUSE; // Default choice for interrupt handling
 
 // String constants for tasks and trophies
 std::vector<String> tasks = {
@@ -108,6 +127,9 @@ void setup() {
 // It reads the button state, handles long press, single press, and updates timer and screen
 
 void loop() {
+    currentTime = millis();
+    buttonState = digitalRead(buttonPin);
+
     updateButtonState(); // Detect press start
     handleLongPress();   // Trigger long press action
     handleButtonRelease(); // Detect and handle short press
@@ -119,12 +141,11 @@ void loop() {
 
     
 void updateButtonState() {
-    buttonState = digitalRead(buttonPin);
-    currentTime = millis();
     
     if (lastButtonState == HIGH && buttonState == LOW) {
       pressTime = currentTime;
       longPressHandled = false;
+      singlePressHandled = false;
     }
 }
 
@@ -144,11 +165,10 @@ void handleLongPress() {
                 currentState = MENU_SCREEN;
                 break;
             case TIMER_RUNNING_SCREEN:
-                Serial.println("Stopping Pomodoro Timer");
+                Serial.println("Pomodoro Interrupted");
                 timerRunning = false; // Set timer running state to false
-                showCenteredMessage("Timer stopped"); // Show message if timer is stopped
-                delay(2000); // Wait for 2 seconds before showing the next screen
-                currentState = TASK_SCREEN; // Switch back to normal mode
+                currentState = INTERRUPT_QUERY_SCREEN; // Switch to interrupt query screen
+                interruptChoice = INTERRUPT_PAUSE; // Reset interrupt choice
                 break;
             case TASK_DONE:
                 Serial.println("Returning to task selection");
@@ -163,23 +183,74 @@ void handleLongPress() {
                 Serial.println("Returning to menu screen");
                 currentState = MENU_SCREEN; // Switch back to menu screen
                 break;
+            case TASK_COMPLETE_QUERY_SCREEN:
+                if (taskCompleteQuery == TASK_COMPLETE) {
+                    Serial.println("Task completed");
+                    showCenteredMessage("Task completed");
+                    delay(1000); // Wait for 2 seconds
+                    timerRunning = false; // Stop the timer
+                    dailyTasksCompleted++;
+                    totalTrophies++;
+                    startNextTask(); // Start the next task
+                } else if (taskCompleteQuery == TASK_EXTEND) {
+                    Serial.println("Task extended");
+                    showCenteredMessage("Task extended");
+                    delay(1000); // Wait for 2 seconds
+
+                    timerMinutes = 1; // Reset timer to 25 minutes
+                    timerSeconds = 0; // Reset seconds to 0
+                    secSinceStart = 0; // Reset seconds since start
+                    
+                    timerRunning = true; // Stop the timer
+                    lastTimerUpdateTime = millis(); // Reset last timer update time
+                    currentState = TIMER_RUNNING_SCREEN; // Switch to timer running state
+                 }
+                break;
+            case INTERRUPT_QUERY_SCREEN:
+                Serial.println("Interrupt choice selected");
+                switch (interruptChoice) {
+                    case INTERRUPT_PAUSE:
+                        Serial.println("Task paused");
+                        timerRunning = false; // Pause the timer
+                        currentState = TASK_SCREEN; // Switch to task screen
+                        break;
+                    case INTERRUPT_DONE:
+                        Serial.println("Task marked as done");
+                        timerRunning = false; // Stop the timer
+                        dailyTasksCompleted++;
+                        totalTrophies++;
+                        startNextTask(); // Start the next task
+                        break;
+                    case INTERRUPT_RESUME:
+                        Serial.println("Resuming timer");
+                        showCenteredMessage("Switching to timer running screen");
+                        delay(1000); // Wait for 2 seconds
+                        timerRunning = true; // Resume the timer
+                        lastTimerUpdateTime = millis(); // Reset last timer update time
+                        currentState = TIMER_RUNNING_SCREEN; // Switch to timer running state
+                        break;
+                }
+                break;
         }
         longPressHandled = true; // Mark long press as handled
     }
 }
 
 void handleButtonRelease() {
-    if (buttonState == HIGH && lastButtonState == LOW) {
+    if (buttonState == HIGH && lastButtonState == LOW && !singlePressHandled) {
         releaseTime = currentTime;
         if (!longPressHandled) {
             Serial.println("Single press detected");
             handleSinglePress();
+            singlePressHandled = true; // Mark single press as handled
           }
     }
 }
 
 void handleSinglePress() {
-    Serial.println("Single press detected");
+    static int pressCounter = 0;
+    Serial.print("handleSinglePress() called #: ");
+    Serial.println(++pressCounter);
 
     switch (currentState) {
 
@@ -256,6 +327,26 @@ void handleSinglePress() {
             delay(2000); // Wait for 2 seconds
             currentState = MENU_SCREEN; // Switch back to menu screen
             break;
+
+        case (TASK_COMPLETE_QUERY_SCREEN):
+            taskCompleteQuery = static_cast<TaskCompleteQuery>((taskCompleteQuery + 1) % NUM_TASK_COMPLETE_CHOICES);
+            Serial.print("Task complete choice: ");
+            Serial.println(taskCompleteQuery == TASK_COMPLETE ? "Complete" : "Extend");
+            Serial.print("taskCompleteQuery numeric value: ");
+            Serial.println(static_cast<int>(taskCompleteQuery));
+            break;
+            
+        case INTERRUPT_QUERY_SCREEN:
+            interruptChoice = static_cast<InterruptChoice>((interruptChoice + 1) % NUM_INTERRUPT_CHOICES);
+            Serial.print("Interrupt choice: ");
+            switch (interruptChoice) {
+                case INTERRUPT_PAUSE:  Serial.println("Pause"); break;
+                case INTERRUPT_DONE:   Serial.println("Done"); break;
+                case INTERRUPT_RESUME: Serial.println("Resume"); break;
+            }
+            break;
+
+
         
     } 
 }
@@ -306,11 +397,8 @@ void updateTimer() {
                 timerRunning = false; // Stop the timer when it reaches 0
                 showCenteredMessage("Pomodoro done!");
                 delay(2000); // Wait for 2 seconds
-                dailyTasksCompleted++;
-                totalTrophies++;
-                currentState = TASK_SCREEN; // Switch back to task screen
-                taskNum++;
-                mode = 0; // Switch back to normal mode
+                taskCompleteQuery = TASK_COMPLETE; // Reset task complete query
+                currentState = TASK_COMPLETE_QUERY_SCREEN; // Switch back to task screen
                 return;
             } else {
                 timerMinutes--;
@@ -323,7 +411,8 @@ void updateTimer() {
 }
 
 void updateScreenMode() {
-    if (timerRunning) return;
+    if (timerRunning && currentState != TASK_COMPLETE_QUERY_SCREEN && currentState != INTERRUPT_QUERY_SCREEN) 
+        return;
     switch (currentState) {
         case MENU_SCREEN: // Show menu screen
             showMenuScreen();
@@ -343,6 +432,12 @@ void updateScreenMode() {
             break;
         case TROPHY_SCREEN: // Show trophy screen
             showTrophyScreen();
+            break;
+        case TASK_COMPLETE_QUERY_SCREEN: // Show task complete query screen
+            showTaskCompleteQueryScreen();
+            break;
+        case INTERRUPT_QUERY_SCREEN: // Show interrupt query screen
+            showInterruptQueryScreen();
             break;
         default:
             showTextScreen("Unknown mode");
@@ -535,6 +630,70 @@ void showCurrentTask(const String& taskText) {
     display.setTextSize(1);
     display.setCursor(0, 56);
     display.print("Press to start task");
+
+    display.display();
+}
+
+void showTaskCompleteQueryScreen() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("Is the task complete?");
+
+    int y0 = 24;
+    int y1 = 40;
+
+    auto drawOption = [&](TaskCompleteQuery choice, const char* text, int y) {
+        if (taskCompleteQuery == choice) {
+            display.fillRect(0, y - 2, 128, 11, WHITE);
+            display.setTextColor(BLACK);
+            display.setCursor(5, y);
+            display.print(text);
+            display.setTextColor(WHITE);
+        } else {
+            display.setCursor(5, y);
+            display.print(text);
+        }
+    };
+
+    drawOption(TASK_COMPLETE, "Yes, task is done", y0);
+    drawOption(TASK_EXTEND, "No, need more time", y1);
+    Serial.print("Showing screen with query value: ");
+    Serial.println(static_cast<int>(taskCompleteQuery));
+
+    display.display();
+}
+
+void showInterruptQueryScreen() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("Task interrupted. Choose:");
+
+    // Define Y positions for each line
+    int y0 = 20;
+    int y1 = 32;
+    int y2 = 44;
+
+    // Helper to draw one line with optional highlight
+    auto drawOption = [&](InterruptChoice choice, const char* text, int y) {
+        if (interruptChoice == choice) {
+            display.fillRect(0, y - 2, 128, 11, WHITE);
+            display.setTextColor(BLACK);
+            display.setCursor(5, y);
+            display.print(text);
+            display.setTextColor(WHITE);
+        } else {
+            display.setCursor(5, y);
+            display.print(text);
+        }
+    };
+
+    drawOption(INTERRUPT_PAUSE, "Pause Task", y0);
+    drawOption(INTERRUPT_DONE, "Mark as Done", y1);
+    drawOption(INTERRUPT_RESUME, "Resume Timer", y2);
 
     display.display();
 }
