@@ -283,8 +283,14 @@ int calcBarPct() {
 
 void prepareTaskScreen() {
     if (taskNum < tasks.size()) {
-        scrollResetX= -CHAR_WIDTH * tasks[taskNum].length();
-        scrollX = SCREEN_WIDTH; // Reset scroll position
+      int textWidth = CHAR_WIDTH * tasks[taskNum].length();
+      scrollResetX = -textWidth;
+
+      if (textWidth <= MAX_SCROLL_WIDTH) {
+        scrollX = 0;
+      } else {
+        scrollX = SCREEN_WIDTH;
+      }
     } else {
         scrollResetX = 0; // Reset scroll position
         scrollX = 0; // Reset scroll position
@@ -510,18 +516,25 @@ void updateScrollPosition(const String& text) {
     }
 }   
 
+
 void showCurrentTask(const String& taskText) {
-    Serial.println("Displaying task: " + tasks[taskNum]);
-    Serial.print("Scroll position: ");
-    Serial.println(scrollX);
     display.clearDisplay();
+
+    // Label
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
     display.setCursor(0, 0);
-    display.print("Next task: ");
+    display.print("Next task:");
+
+    // Task name, scrolling if needed
     display.setTextSize(2);
-    display.setCursor(scrollX, 24);
+    display.setCursor(scrollX, 20);  // Better vertical alignment
     display.print(taskText);
+
+    // Footer
     display.setTextSize(1);
     display.setCursor(0, 56);
     display.print("Press to start task");
-    display.display();    
+
+    display.display();
 }
