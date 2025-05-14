@@ -5,6 +5,7 @@ import 'package:pip_boi/taskProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:pip_boi/_task.dart';
 import 'package:pip_boi/deviceService.dart';
+import 'dart:ui' as ui;
 
 class SettingsTab extends StatefulWidget {
   const SettingsTab({super.key});
@@ -17,66 +18,102 @@ class _SettingsTabState extends State<SettingsTab> {
   String statusResponseText = "";
   String sendResponseText = "";
 
+
   @override
   Widget build(BuildContext context) {
-    List<TaskOutput> responseList = [];
     var taskProvider = Provider.of<TaskProvider>(context);
     var tasks = taskProvider.convertToOutput();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Column(
-              children: [
-                FilledButton(
-                    onPressed: () async {
-                      responseList = await receiveTasks();
-                      taskProvider.updateFromInput(responseList);
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                width: 200,
+                height: 200,
+                child: FilledButton(
+                  onPressed: () async {
+                    var responseList = await receiveTasks();
+                    taskProvider.updateFromInput(responseList);
 
-                      bool response = await sendTasks(tasks);
-                      setState(() {
-                        if (response) {
-                          sendResponseText =
-                          "Tasks sent to device";
-                        } else {
-                          sendResponseText =
-                          "Error sending tasks, check connection with device";
-                        }
-                      });
-                    },
-                    child: Text('Synchronize tasks with device')),
-                Text(sendResponseText),
-              ],
+                    bool response = await sendTasks(tasks);
+                    setState(() {
+                      sendResponseText = response
+                          ? "Tasks sent to device"
+                          : "Error sending tasks, check connection with device";
+                    });
+                  },
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Sync Tasks',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        sendResponseText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            Column(
-              children: [
-                FilledButton(
-                    onPressed: () async {
-                      bool response = await getStatus();
-                      setState(() {
-                        if (response) {
-                          statusResponseText =
-                              "You are connected to the device";
-                        } else {
-                          statusResponseText =
-                              "No connection to device, ensure the following: \n"
-                              " - The device is powered on \n"
-                              " - The phone is on the same wifi as the device";
-                        }
-                      });
-                    },
-                    child: Text("Check device connection")),
-                Text(statusResponseText),
-              ],
+          ),
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                width: 200,
+                height: 200,
+                child: FilledButton(
+                  onPressed: () async {
+                    bool response = await getStatus();
+                    setState(() {
+                      statusResponseText = response
+                          ? "You are connected to the device"
+                          : "No connection to device. Make sure:\n"
+                          "- Device is powered on\n"
+                          "- Phone is on same Wi-Fi";
+                    });
+                  },
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Check Connection',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        statusResponseText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
 }
 
 // import 'package:http/http.dart' as http;

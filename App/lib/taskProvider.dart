@@ -95,7 +95,7 @@ class TaskProvider extends ChangeNotifier {
     return temp;
   }
 
-  // Lav en funktion der opdaterer tasks ud fra info fra pomodoroen.
+
   void updateFromInput(List<TaskOutput> inputList) {
     for (var task in inputList) {
       print('Updating: '
