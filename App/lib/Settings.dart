@@ -41,7 +41,7 @@ class _SettingsTabState extends State<SettingsTab> {
                     bool response = await sendTasks(tasks);
                     setState(() {
                       sendResponseText = response
-                          ? "Tasks sent to device"
+                          ? "Successfully synchronized tasks with device"
                           : "Error sending tasks, check connection with device";
                     });
                   },
@@ -54,7 +54,7 @@ class _SettingsTabState extends State<SettingsTab> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Sync Tasks',
+                        'Synchronize Tasks',
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),

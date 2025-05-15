@@ -7,6 +7,7 @@ class Task{
   TimeOfDay startTime;
   TimeOfDay endTime;
   final int id;
+  int timesCompleted;
   bool isComplete = false;
   bool isRecurring = false;
 
@@ -14,6 +15,7 @@ class Task{
     required this.taskName,
     required this.startTime,
     required this.endTime,
+    this.timesCompleted = 0,
     required this.isRecurring
   }) : id = _getNextId();
 }
@@ -36,7 +38,7 @@ class TaskOutput {
     required this.startHour,
     required this.startMinute,
     required this.duration,
-    this.timesCompleted = 0,
+    required this.timesCompleted,
     this.isComplete = false,
     required this.isRecurring,
   });
@@ -48,6 +50,7 @@ class TaskOutput {
     'startHour': startHour,
     'startMinute': startMinute,
     'duration': duration,
+    'timesCompleted': timesCompleted,
     'isComplete': isComplete,
     'isRecurring': isRecurring
   };
@@ -61,6 +64,7 @@ class TaskOutput {
         'startHour' : int startHour,
         'startMinute' : int startMinute,
         'duration' : int duration,
+        'timesCompleted': int timesCompleted,
         'isComplete' : bool isComplete,
         'isRecurring' : bool isRecurring
       } => TaskOutput(
@@ -70,6 +74,7 @@ class TaskOutput {
         startHour: startHour,
         startMinute: startMinute,
         duration: duration,
+        timesCompleted: timesCompleted,
         isComplete: isComplete,
         isRecurring: isRecurring
       ),

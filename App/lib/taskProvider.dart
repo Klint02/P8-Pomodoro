@@ -87,6 +87,7 @@ class TaskProvider extends ChangeNotifier {
           startHour: task.startTime.hour,
           startMinute: task.startTime.minute,
           duration: _findDuration(task.startTime, task.endTime),
+          timesCompleted: task.timesCompleted,
           isRecurring: task.isRecurring,
         ));
       }
@@ -109,8 +110,11 @@ class TaskProvider extends ChangeNotifier {
 
         if (index != -1) {
           dayTasks[index].isComplete = true;
-          completedTasks.add(dayTasks[index]);
-          removeTask(task.weekDay, index);
+          dayTasks[index].timesCompleted++;
+          if (!dayTasks[index].isRecurring) {
+            completedTasks.add(dayTasks[index]);
+            removeTask(task.weekDay, index);
+          }
         } else {
           print('Task with id=${task.id} not found in week[${task.weekDay}].');
         }
