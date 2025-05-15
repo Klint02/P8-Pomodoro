@@ -196,7 +196,9 @@ class _TasklistState extends State<Tasklist> {
                             ? FontWeight.bold
                             : FontWeight.normal,
                         color:
+
                             selectedDay == index ? Colors.blue : Colors.black,
+
                       ),
                     ),
                   );
