@@ -3,7 +3,6 @@ import 'package:pip_boi/_task.dart';
 import 'package:provider/provider.dart';
 import 'package:pip_boi/taskProvider.dart';
 
-
 class Tasklist extends StatefulWidget {
   const Tasklist({super.key});
 
@@ -45,6 +44,8 @@ class _TasklistState extends State<Tasklist> {
     TimeOfDay startTime =
         changeTask ? tasks[index].startTime : defaultStartTime;
     TimeOfDay endTime = changeTask ? tasks[index].endTime : defaultEndTime;
+
+    bool isRecurring = changeTask ? tasks[index].isRecurring : false;
 
     if (changeTask) {
       controller.text = tasks[index].taskName;
@@ -105,12 +106,31 @@ class _TasklistState extends State<Tasklist> {
                   },
                   child: const Text("Select the end time")),
               Text("End time: ${endTime.hour}:${endTime.minute}"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Recurring task?"),
+                  Checkbox(
+                    value: isRecurring,
+                    onChanged: (value) {
+                      if (value != null) {
+                        setStateDialog(() {
+                          isRecurring = value;
+                        });
+                      }
+                    },
+                  ),
+
+                ],
+              ),
+
               Spacer(),
               if (changeTask)
                 TextButton(
                   onPressed: () {
                     taskProvider.removeTask(selectedDay, index);
-                    Navigator.of(context).pop(Task("", startTime, endTime));
+                    Navigator.of(context).pop(
+                        Task(taskName: "", startTime: startTime, endTime: endTime, isRecurring: false));
                     controller.clear();
                   },
                   child: const Text(
@@ -124,15 +144,20 @@ class _TasklistState extends State<Tasklist> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(Task("", startTime, endTime));
+              Navigator.of(context).pop(
+                  Task(taskName: "", startTime: startTime, endTime: endTime, isRecurring: false));
               controller.clear();
             },
             child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context)
-                  .pop(Task(controller.text, startTime, endTime));
+              Navigator.of(context).pop(Task(
+                  taskName: controller.text,
+                  startTime: startTime,
+                  endTime: endTime,
+                  isRecurring: isRecurring
+              ));
               controller.clear();
             },
             child: const Text("Enter"),
@@ -171,7 +196,9 @@ class _TasklistState extends State<Tasklist> {
                             ? FontWeight.bold
                             : FontWeight.normal,
                         color:
-                        selectedDay == index ? Colors.blue : Colors.black,
+
+                            selectedDay == index ? Colors.blue : Colors.black,
+
                       ),
                     ),
                   );

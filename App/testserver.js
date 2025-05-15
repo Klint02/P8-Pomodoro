@@ -4,6 +4,8 @@ const port = 3000;
 
 app.use(express.json());
 
+var test;
+
 // Middleware to handle CORS preflight requests
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
@@ -16,19 +18,26 @@ app.use((req, res, next) => {
 });
 
 // Simulate Arduino's response to GET request
+app.get('/receive', (_, res) => {
+  res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
+  res.json(test);
+});
+
 app.get('/status', (_, res) => {
   res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
-  res.json({ led: 'on', temp: 23 });
+  res.status(200).json({});
+  console.log('Connection good');
 });
 
 // Simulate Arduino responding to a POST command
-app.post('/control', (req, res) => {
+app.post('/send', (req, res) => {
   res.set('Access-Control-Allow-Origin', '*'); // Allow CORS
   if (!req.body || typeof req.body !== 'object') {
     console.error('Invalid control command received:', req.body);
     return res.status(400).json({ status: 'error', message: 'Invalid input' });
   }
-  console.log('Received control command:', req.body);
+  test = req.body;
+  console.log('Received control command:', test);
   res.json({ id: 101, title:  req.body.title});
 });
 
