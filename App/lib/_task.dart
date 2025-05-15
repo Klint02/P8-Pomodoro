@@ -1,26 +1,84 @@
 import 'package:flutter/material.dart';
+int _lastId = 0;
+int _getNextId() => ++_lastId;
 
 class Task{
   String taskName;
   TimeOfDay startTime;
   TimeOfDay endTime;
-  bool isChecked = false;
+  final int id;
+  int timesCompleted;
+  bool isComplete = false;
   bool isRecurring = false;
 
-  Task(this.taskName, this.startTime, this.endTime);
-
-
+  Task({
+    required this.taskName,
+    required this.startTime,
+    required this.endTime,
+    this.timesCompleted = 0,
+    required this.isRecurring
+  }) : id = _getNextId();
 }
 
 class TaskOutput {
   String taskName;
+  int id;
   int weekDay;
   int startHour;
   int startMinute;
-  bool isComplete = false;
+  int duration;
+  int timesCompleted;
+  bool isComplete;
   bool isRecurring;
 
-  TaskOutput(this.taskName, this.weekDay, this.startHour, this.startMinute, this.isRecurring);
+  TaskOutput({
+    required this.taskName,
+    required this.id,
+    required this.weekDay,
+    required this.startHour,
+    required this.startMinute,
+    required this.duration,
+    required this.timesCompleted,
+    this.isComplete = false,
+    required this.isRecurring,
+  });
 
-  Map<String, dynamic> toJson() => {'taskname':taskName, 'weekday': weekDay, 'starthour': startHour, 'startminute': startMinute, 'iscomplete': isComplete, 'isrecurring': isRecurring};
+  Map<String, dynamic> toJson() => {
+    'taskName': taskName,
+    'id': id,
+    'weekDay': weekDay,
+    'startHour': startHour,
+    'startMinute': startMinute,
+    'duration': duration,
+    'timesCompleted': timesCompleted,
+    'isComplete': isComplete,
+    'isRecurring': isRecurring
+  };
+
+  factory TaskOutput.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {
+        'taskName' : String taskName,
+        'id' : int id,
+        'weekDay' : int weekDay,
+        'startHour' : int startHour,
+        'startMinute' : int startMinute,
+        'duration' : int duration,
+        'timesCompleted': int timesCompleted,
+        'isComplete' : bool isComplete,
+        'isRecurring' : bool isRecurring
+      } => TaskOutput(
+        taskName: taskName,
+        id: id,
+        weekDay: weekDay,
+        startHour: startHour,
+        startMinute: startMinute,
+        duration: duration,
+        timesCompleted: timesCompleted,
+        isComplete: isComplete,
+        isRecurring: isRecurring
+      ),
+      _ => throw const FormatException('Failed to map json to task.'),
+    };
+  }
 }
