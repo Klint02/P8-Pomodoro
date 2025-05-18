@@ -1,112 +1,38 @@
-#include <LittleFS.h>
 #include <iostream>
 #include "Arduino.h"
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+#include <IPAddress.h>
+#include <Wire.h>
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+#include <Arduino_JSON.h>
+#include "src/RTCService/RTCService.hpp"
+#include "src/LoggingService/LoggingService.hpp"
+#include "src/NetworkService/NetworkService.hpp"
 
-const char* ssid = "";
-const char* password = "";
-
-
-ESP8266WebServer server(80);
- 
-// Serving Hello world
-void getHelloWord() {
-    server.send(200, "text/json", "{\"name\": \"Hello world\"}");
-    if (LittleFS.exists("/f.txt")) {
-        std::cout << "File already exists shorty" << std::endl;
-    } else {
-        std::cout << "Sheesh we be creatin' files y'all" << std::endl;
-        File f = LittleFS.open("/f.txt", "w");
-        if (!f) {
-            std::cout << "nvm brorz." << std::endl;
-        }
-    }
-    FSInfo info;
-    LittleFS.info(info);
-
-    std::cout << info.totalBytes << std::endl;
-    LittleFS.end();
-}
- 
-// Define routing
-void restServerRouting() {
-    LittleFS.begin();
-    server.on("/", HTTP_GET, []() {
-        server.send(200, F("text/html"),
-            F("Welcome to the REST Web Server"));
-            LittleFS.format();
-    });
-    server.on(F("/helloWorld"), HTTP_GET, getHelloWord);
+#define buzzer 14
 
 
+auto RTC_service = RTC::RTCService();
+auto logging_service = logging::LoggingService(RTC_service);
+auto central_logger = new logging::LoggingWrapper("Central Service", logging_service);
+auto network_service = new network::networkService(logging_service, RTC_service);
+void setup() {
+    pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
 
-}
- 
-// Manage not found URL
-void handleNotFound() {
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "text/plain", message);
+    Serial.begin(115200);
+
+    JSONVar test_object;
+    test_object["bab"] = (int) 42; 
+
+    std::cout << std::endl;
+    central_logger->log("PomoOS starting up", logging::levels::INFO);
+
+    network_service->initWiFi();
+    network_service->initRest();
+    central_logger->log("PomoOS is now running", logging::levels::INFO);
 }
 
-void setup () {
-    Serial.begin(115200); // opens serial port, sets data rate to 9600 bps
-    std::cout << "We rollin' boys" << std::endl;
-    LittleFS.begin();
-
-    if (LittleFS.exists("/f.txt")) {
-        std::cout << "File already exists shorty" << std::endl;
-    } else {
-        std::cout << "aint nothin here'" << std::endl;
-    }
-    FSInfo info;
-    LittleFS.info(info);
-
-    std::cout << info.totalBytes << std::endl;
-    LittleFS.end();
-
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    Serial.println("");
-
-    // Wait for connection
-    while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    }
-    Serial.println("");
-    Serial.print("Connected to ");
-    Serial.println(ssid);
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-
-    // Activate mDNS this is used to be able to connect to the server
-    // with local DNS hostmane esp8266.local
-    if (MDNS.begin("esp8266")) {
-    Serial.println("MDNS responder started");
-    }
-
-    // Set server routing
-    restServerRouting();
-    // Set not found response
-    server.onNotFound(handleNotFound);
-    // Start server
-    server.begin();
-    Serial.println("HTTP server started");
-}
-
-void loop () {
-    server.handleClient(); 
+void loop() {
+    network_service->handleRestClient();
 }
