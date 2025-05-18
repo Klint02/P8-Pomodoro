@@ -1,12 +1,14 @@
 #ifndef TASK_CONTROL_SERVICES
+#include "Ds1302.h"
 #define TASK_CONTROL_SERVICES
-// #include <iostream>
-// #include <vector>
+
+
 namespace task {
      class Task
     {
     public:
-        std::string taskName;
+        Task(String, int,int,int,int,bool,bool);
+        String taskName;
         int id;
         int weekDay;
         int startHour;
@@ -28,21 +30,18 @@ namespace task {
 
     public:
         std::vector<Task> tasks;
-
+        int getTrophy();
         void TimerDone();
         int NumberOfTasks();
-
         void initTasks();
-
         int TasksCompleted ();
-
         void NewTrophy();
-
         void debug();
-        
         int getIndex();
         void addTime();
         void taskDoneEarly();
+        void initTrophys();
+        void taskPriority(const Ds1302::DateTime& dt);
     };
 }
 #endif
