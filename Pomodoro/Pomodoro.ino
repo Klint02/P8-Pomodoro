@@ -1,8 +1,23 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "pomodoro.h"
 #include <vector>
+#include <iostream>
+#include "Arduino.h"
+#include <ESP8266WebServer.h>
+#include <IPAddress.h>
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+#include "src/bitmaps/bitmaps.h"
+#include "src/filesystem/filesystem.hpp"
+#include "src/RTCService/RTCService.hpp"
+#include "src/LoggingService/LoggingService.hpp"
+#include "src/NetworkService/NetworkService.hpp"
+
+auto RTC_service = RTC::RTCService();
+auto logging_service = logging::LoggingService(RTC_service);
+auto central_logger = new logging::LoggingWrapper("Central Service", logging_service);
+auto network_service = new network::networkService(logging_service, RTC_service);
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -105,28 +120,35 @@ AppState currentState = INTRO_SCREEN; // Initialize the current state to MENU_SC
 // and initialize the serial communication
 
 void setup() {
-  Serial.begin(115200);
-  delay(1000);
-  Serial.println("Booting...");
+    Serial.begin(115200);
+    std::cout << std::endl;
+    central_logger->log("PomoOS starting up", logging::levels::INFO);
+    network_service->initWiFi();
+    network_service->initRest();
+    delay(1000);
 
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
-    Serial.println("SSD1306 allocation failed");
-    for(;;);
-  }
+    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+        Serial.println("SSD1306 allocation failed");
+        for(;;);
+    }
 
-  pinMode(buttonPin, INPUT_PULLUP); // Set button pin as input with pull-up resistor
+    pinMode(buttonPin, INPUT_PULLUP); // Set button pin as input with pull-up resistor
 
-  // Startup procedure
-  showPomodoroStartScreen(); // Show the pomodoro image on the screen
-  delay(2000); // Wait for 2 seconds
-  currentState = MENU_SCREEN; // Set the current state to MENU_SCREEN
-  showMenuScreen(); // Show the menu screen  
+    // Startup procedure
+    showPomodoroStartScreen(); // Show the pomodoro image on the screen
+    delay(2000); // Wait for 2 seconds
+    currentState = MENU_SCREEN; // Set the current state to MENU_SCREEN
+    showMenuScreen(); // Show the menu screen  
+    central_logger->log("PomoOS is now running", logging::levels::INFO);
+
 }
 
 // Main loop function
 // It reads the button state, handles long press, single press, and updates timer and screen
 
 void loop() {
+    network_service->handleRestClient();
+
     currentTime = millis();
     buttonState = digitalRead(buttonPin);
 

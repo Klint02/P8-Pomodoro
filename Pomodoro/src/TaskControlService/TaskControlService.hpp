@@ -1,22 +1,25 @@
 #ifndef TASK_CONTROL_SERVICES
 #define TASK_CONTROL_SERVICES
-// #include <iostream>
-// #include <vector>
-namespace task {
-     class Task
-    {
-    public:
-        std::string taskName;
-        int id;
-        int weekDay;
-        int startHour;
-        int duration;
-        bool isComplete;
-        bool isRecurring;
-        std::vector<int> timers;
+namespace TCS {
+    class Task
+        {
+        public:
+            Task(JSONVar obj);
+            std::string taskName;
+            int id;
+            int weekDay;
+            int startHour;
+            int startMinute;
+            int duration;
+            int timesCompleted;
+            bool isComplete;
+            bool isRecurring;
+            std::vector<int> timers;
 
-        void init();
-    };
+            void init();
+
+            friend std::ostream& operator<<(std::ostream& os, const Task& obj);
+        };
 
     class TaskControlService
     {
