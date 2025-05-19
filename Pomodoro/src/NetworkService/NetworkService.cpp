@@ -157,10 +157,10 @@ namespace network {
             }
             logger->log("Making tasks", logging::levels::INFO);
             
-            std::vector<TSC::Task> task_vector;
+            std::vector<TCS::Task> task_vector;
 
             for (int i = 0; i < tasks.length(); i++) {
-                task_vector.push_back(TSC::Task(tasks[i]));
+                task_vector.push_back(TCS::Task(tasks[i]));
             }
 
             for (auto& task : task_vector) {
