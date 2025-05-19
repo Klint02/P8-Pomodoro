@@ -20,5 +20,32 @@ namespace TSC {
 
             friend std::ostream& operator<<(std::ostream& os, const Task& obj);
         };
+
+    class TaskControlService
+    {
+    private:
+        int amountOfTasks;
+        int tasksComplete;
+        int trophys;
+        int index;
+
+    public:
+        std::vector<Task> tasks;
+
+        void TimerDone();
+        int NumberOfTasks();
+
+        void initTasks();
+
+        int TasksCompleted ();
+
+        void NewTrophy();
+
+        void debug();
+        
+        int getIndex();
+        void addTime();
+        void taskDoneEarly();
+    };
 }
 #endif
