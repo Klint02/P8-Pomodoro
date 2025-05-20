@@ -26,7 +26,7 @@ namespace RTC {
         std::string getTime();
         std::string getTime(RtcDateTime& actual_time);
         void setClock(std::string date, std::string time);
-
+        //int getCurrentHour();
     };
     
 }
