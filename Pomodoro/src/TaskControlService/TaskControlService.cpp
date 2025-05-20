@@ -97,20 +97,6 @@ namespace TCS
         {
             trophys++;
         }
-
-        void TaskControlService::debug()
-        {
-            std::cout << "Task timers:\n";
-            for (int i = 0; i < this->tasks.size(); i++)
-            {
-                std::cout << "Task " << i << ": ";
-                for (int j = 0; j < this->tasks[i].timers.size(); j++)
-                {
-                    std::cout << this->tasks[i].timers[j] << " ";
-                }
-                std::cout << std::endl;
-            }
-        }
         
         int TaskControlService::getIndex(){
             return index;
@@ -125,5 +111,27 @@ namespace TCS
             tasks[index].timers.clear();
             TimerDone();
         }
+        int TaskControlService::getTrophys(){
+            return trophys;
+        }
+        void TaskControlService::taskPriority(int hour)
+    {
+        for (int i = 0; i < tasks.size(); i++)
+        {
+            if (tasks[i].isComplete == false && tasks[i].startHour > hour)
+            {
+                index = i;
+                return;
+            }
+        }
 
+        for (int i = 0; i < tasks.size(); i++)
+        {
+            if (tasks[i].isComplete == true)
+            {
+                index = i;
+                return;
+            }
+        }
+    }
 }

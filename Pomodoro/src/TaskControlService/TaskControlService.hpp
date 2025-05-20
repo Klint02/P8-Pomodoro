@@ -34,18 +34,15 @@ namespace TCS {
 
         void TimerDone();
         int NumberOfTasks();
-
         void initTasks();
-
         int TasksCompleted ();
-
         void NewTrophy();
-
-        void debug();
-        
         int getIndex();
         void addTime();
         void taskDoneEarly();
+        int getTrophys();
+        void taskPriority(int hour);
     };
+
 }
 #endif

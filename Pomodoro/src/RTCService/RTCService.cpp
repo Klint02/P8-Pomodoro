@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <ThreeWire.h>  
+#include <ThreeWire.h>
 #include <RtcDS1302.h>
 #include "RTCService.hpp"
 
@@ -13,10 +13,11 @@
 // DS1302 VCC --> 3.3v - 5v
 // DS1302 GND --> GND
 
-namespace RTC {
+namespace RTC
+{
     RTCService::RTCService(/* args */)
     {
-        myWire = new ThreeWire(13,12,15); // IO, SCLK, CE
+        myWire = new ThreeWire(13, 12, 15); // IO, SCLK, CE
         Rtc = new RtcDS1302<ThreeWire>(*myWire);
 
         Rtc->Begin();
@@ -25,7 +26,7 @@ namespace RTC {
         std::cout << getTime(compiled_time) << std::endl;
         Serial.println();
 
-        if (!Rtc->IsDateTimeValid()) 
+        if (!Rtc->IsDateTimeValid())
         {
             // Common Causes:
             //    1) first time you ran and the device wasn't running yet
@@ -48,44 +49,53 @@ namespace RTC {
         }
 
         actual_time = Rtc->GetDateTime();
-        if (actual_time < compiled_time) 
+        if (actual_time < compiled_time)
         {
             Serial.println("RTC is older than compile time!  (Updating DateTime)");
             Rtc->SetDateTime(compiled_time);
         }
-        else if (actual_time > compiled_time) 
+        else if (actual_time > compiled_time)
         {
             Serial.println("RTC is newer than compile time. (this is expected)");
         }
-        else if (actual_time == compiled_time) 
+        else if (actual_time == compiled_time)
         {
             Serial.println("RTC is the same as compile time! (not expected but all is fine)");
         }
     }
 
-    std::string RTCService::getTime(RtcDateTime& actual_time) {
-        //THIS IS ONLY FOR CONVERTING TIME TO A STRING
-        //TO GET AN UPDATED TIME USE getTime();
+    std::string RTCService::getTime(RtcDateTime &actual_time)
+    {
+        // THIS IS ONLY FOR CONVERTING TIME TO A STRING
+        // TO GET AN UPDATED TIME USE getTime();
         std::ostringstream time_oss;
         time_oss << std::to_string(static_cast<u_int16_t>(actual_time.Year()))
-        << "/" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Month()))
-        << "/" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Day()))
-        << " " << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Hour()))
-        << ":" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Minute()))
-        << ":" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Second()));
+                 << "/" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Month()))
+                 << "/" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Day()))
+                 << " " << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Hour()))
+                 << ":" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Minute()))
+                 << ":" << std::setw(2) << std::setfill('0') << std::to_string(static_cast<u_int8_t>(actual_time.Second()));
         return time_oss.str();
     }
 
-    std::string RTCService::getTime() {
+    std::string RTCService::getTime()
+    {
         actual_time = Rtc->GetDateTime();
         return getTime(actual_time);
     }
 
-    void RTCService::setClock(std::string date, std::string time) {
+    // int RTCService::getCurrentHour()
+    // {
+    //     actual_time = Rtc->GetDateTime();
+
+    //     return actual_time.hour;
+    // }
+
+    void RTCService::setClock(std::string date, std::string time)
+    {
         RtcDateTime new_date_time = RtcDateTime(date.c_str(), time.c_str());
         std::cout << "setting time to " << date << time << std::endl;
         Rtc->SetDateTime(new_date_time);
     }
-
 
 }
