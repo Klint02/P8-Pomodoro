@@ -224,5 +224,102 @@ void main() {
       expect(updatedTask.isComplete, true);
     });
 
+    test("Add task with same start time is ordered correctly", () {
+      final task1 = Task(
+        taskName: 'Original',
+        startTime: const TimeOfDay(hour: 10, minute: 0),
+        endTime: const TimeOfDay(hour: 11, minute: 0),
+        isRecurring: false,
+      );
+
+      final task2 = Task(
+        taskName: 'Same Time',
+        startTime: const TimeOfDay(hour: 10, minute: 0),
+        endTime: const TimeOfDay(hour: 11, minute: 0),
+        isRecurring: false,
+      );
+
+      taskProvider.addTask(task1, 0);
+      taskProvider.addTask(task2, 0);
+
+      final tasks = taskProvider.getTasksForDay(0);
+      expect(tasks.length, 2);
+      expect(tasks[0].startTime.hour, 10);
+      expect(tasks[0].taskName, 'Same Time'); // Confirm ordering preference
+    });
+
+    test("Changing task to same start time keeps it in place", () {
+      final task = Task(
+        taskName: 'Stay Put',
+        startTime: const TimeOfDay(hour: 8, minute: 0),
+        endTime: const TimeOfDay(hour: 9, minute: 0),
+        isRecurring: false,
+      );
+
+      taskProvider.addTask(task, 2);
+
+      final updated = Task(
+        taskName: task.taskName,
+        startTime: const TimeOfDay(hour: 8, minute: 0),
+        endTime: task.endTime,
+        isRecurring: task.isRecurring,
+        timesCompleted: task.timesCompleted,
+      );
+
+      taskProvider.changeTask(updated, 2, 0);
+
+      final tasks = taskProvider.getTasksForDay(2);
+      expect(tasks.length, 1);
+      expect(tasks[0].taskName, 'Stay Put');
+    });
+
+    test("Batch update multiple completed tasks", () {
+      final task1 = Task(
+        taskName: 'Task 1',
+        startTime: const TimeOfDay(hour: 7, minute: 0),
+        endTime: const TimeOfDay(hour: 8, minute: 0),
+        isRecurring: false,
+      );
+      final task2 = Task(
+        taskName: 'Task 2',
+        startTime: const TimeOfDay(hour: 8, minute: 0),
+        endTime: const TimeOfDay(hour: 9, minute: 0),
+        isRecurring: false,
+      );
+
+      taskProvider.addTask(task1, 1);
+      taskProvider.addTask(task2, 1);
+
+      final outputs = [
+        TaskOutput(
+          taskName: task1.taskName,
+          id: task1.id,
+          weekDay: 1,
+          startHour: 7,
+          startMinute: 0,
+          duration: 60,
+          timesCompleted: 0,
+          isRecurring: false,
+          isComplete: true,
+        ),
+        TaskOutput(
+          taskName: task2.taskName,
+          id: task2.id,
+          weekDay: 1,
+          startHour: 8,
+          startMinute: 0,
+          duration: 60,
+          timesCompleted: 0,
+          isRecurring: false,
+          isComplete: true,
+        ),
+      ];
+
+      taskProvider.updateFromInput(outputs);
+
+      expect(taskProvider.getTasksForDay(1), isEmpty);
+      expect(taskProvider.completedTasks.length, 2);
+    });
+
   });
 }
