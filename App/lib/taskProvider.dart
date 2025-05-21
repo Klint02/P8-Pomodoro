@@ -121,4 +121,8 @@ class TaskProvider extends ChangeNotifier {
       }
     }
   }
+
+  List<Task> getCompletedTasks() {
+    return completedTasks;
+  }
 }

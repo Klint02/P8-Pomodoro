@@ -31,6 +31,48 @@ class _TasklistState extends State<Tasklist> {
     super.dispose();
   }
 
+  Future<void> openArchive() async {
+    var taskProvider = Provider.of<TaskProvider>(context, listen: false);
+    var tasks = taskProvider.getCompletedTasks();
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Completed Tasks'),
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) {
+            if (tasks.isEmpty) {
+              return const Text("No completed tasks.");
+            }
+
+            return SizedBox(
+              height: 300, // constrain height to avoid overflow
+              width: double.maxFinite,
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  final time = task.endTime.format(context);
+                  return ListTile(
+                    title: Text("${task.taskName} at $time"),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("Close"),
+          )
+        ],
+      ),
+    );
+  }
+
   Future<Task?> openDialog(bool changeTask, int index) async {
     var taskProvider = Provider.of<TaskProvider>(context, listen: false);
     var tasks = taskProvider.getTasksForDay(selectedDay);
@@ -120,17 +162,18 @@ class _TasklistState extends State<Tasklist> {
                       }
                     },
                   ),
-
                 ],
               ),
-
               Spacer(),
               if (changeTask)
                 TextButton(
                   onPressed: () {
                     taskProvider.removeTask(selectedDay, index);
-                    Navigator.of(context).pop(
-                        Task(taskName: "", startTime: startTime, endTime: endTime, isRecurring: false));
+                    Navigator.of(context).pop(Task(
+                        taskName: "",
+                        startTime: startTime,
+                        endTime: endTime,
+                        isRecurring: false));
                     controller.clear();
                   },
                   child: const Text(
@@ -144,8 +187,11 @@ class _TasklistState extends State<Tasklist> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(
-                  Task(taskName: "", startTime: startTime, endTime: endTime, isRecurring: false));
+              Navigator.of(context).pop(Task(
+                  taskName: "",
+                  startTime: startTime,
+                  endTime: endTime,
+                  isRecurring: false));
               controller.clear();
             },
             child: const Text("Cancel"),
@@ -156,8 +202,7 @@ class _TasklistState extends State<Tasklist> {
                   taskName: controller.text,
                   startTime: startTime,
                   endTime: endTime,
-                  isRecurring: isRecurring
-              ));
+                  isRecurring: isRecurring));
               controller.clear();
             },
             child: const Text("Enter"),
@@ -196,9 +241,7 @@ class _TasklistState extends State<Tasklist> {
                             ? FontWeight.bold
                             : FontWeight.normal,
                         color:
-
                             selectedDay == index ? Colors.blue : Colors.black,
-
                       ),
                     ),
                   );
@@ -234,20 +277,20 @@ class _TasklistState extends State<Tasklist> {
                 },
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FilledButton(
-                  onPressed: () async {
-                    final inputTask = await openDialog(false, 0);
-                    if (inputTask != null && inputTask.taskName.isNotEmpty) {
-                      taskProvider.addTask(inputTask, selectedDay);
-                    }
-                  },
-                  child: const Text("Add"),
-                ),
-              ],
+            FilledButton(
+              onPressed: () async {
+                final inputTask = await openDialog(false, 0);
+                if (inputTask != null && inputTask.taskName.isNotEmpty) {
+                  taskProvider.addTask(inputTask, selectedDay);
+                }
+              },
+              child: const Text("Add Task"),
             ),
+            FilledButton(
+                onPressed: () async {
+                  await openArchive();
+                },
+                child: const Text("See completed tasks")),
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);
