@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:pip_boi/_task.dart';
 
 Future<bool> getStatus({Duration timeout = const Duration(seconds: 10)}) async {
-  const url = 'http://localhost:3000/status';
+  const url = 'http://192.168.1.2/status';
   try {
     final response = await http.get(Uri.parse(url)).timeout(timeout);
 
@@ -21,7 +21,7 @@ Future<bool> getStatus({Duration timeout = const Duration(seconds: 10)}) async {
 
 Future<List<TaskOutput>> receiveTasks(
     {Duration timeout = const Duration(seconds: 10)}) async {
-  const url = 'http://localhost:3000/receive';
+  const url = 'http://192.168.1.2/receive';
 
   try {
     final response = await http.get(Uri.parse(url)).timeout(timeout);
@@ -44,7 +44,7 @@ Future<List<TaskOutput>> receiveTasks(
 
 Future<bool> sendTasks(List<Object> inputList,
     {Duration timeout = const Duration(seconds: 10)}) async {
-  const url = 'http://localhost:3000/send';
+  const url = 'http://192.168.1.2/send';
 
   try {
     final response = await http.post(
