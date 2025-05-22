@@ -8,9 +8,12 @@
 #include <IPAddress.h>
 #include <ThreeWire.h>  
 #include <RtcDS1302.h>
+#include <Arduino_JSON.h>
 #include "src/bitmaps/bitmaps.h"
+#include "src/Speaker/Speaker.hpp"
 #include "src/filesystem/filesystem.hpp"
 #include "src/RTCService/RTCService.hpp"
+#include "src/TaskControlService/TaskControlService.hpp"
 #include "src/LoggingService/LoggingService.hpp"
 #include "src/NetworkService/NetworkService.hpp"
 #include "src/TaskControlService/TaskControlService.hpp"
@@ -19,7 +22,7 @@ auto RTC_service = RTC::RTCService();
 auto logging_service = logging::LoggingService(RTC_service);
 auto central_logger = new logging::LoggingWrapper("Central Service", logging_service);
 auto task_control_service = TCS::TaskControlService();
-auto network_service = new network::networkService(logging_service, RTC_service);
+auto network_service = new network::networkService(logging_service, RTC_service, task_control_service);
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
@@ -44,7 +47,7 @@ unsigned long releaseTime = 0; // Time when the button was released
 unsigned long currentTime = 0; // Current time in milliseconds
 unsigned long lastTimerUpdateTime = 0; // Last time the timer was updated
 unsigned long secSinceStart = 0; // Seconds since the timer started
-int timerMinutes = task_control_service.tasks[task_control_service.getIndex()].timers[0]; // Timer duration in minutes
+int timerMinutes = 0; // Timer duration in minutes
 int timerSeconds = 0; // Timer duration in seconds
 
 // Indicators for button state
@@ -61,6 +64,8 @@ int selectedIcon = 0; // 0 = left, 1 = center, 2 = right
 // TIMING CONSTANTS
 const unsigned long debounceDelay = 75;
 const unsigned long longPressThreshold = 800;    // ms
+
+std::string default_name = "hello";
 
 // NETWORK CONSTANTS
 const char* ssid = "My Super Network"; // WiFi SSID
@@ -121,14 +126,11 @@ AppState currentState = INTRO_SCREEN; // Initialize the current state to MENU_SC
 // and initialize the serial communication
 
 void setup() {
-    Wire.begin(D3,D4);
+    //Wire.begin(D3,D4);
     Serial.begin(115200);
     std::cout << std::endl;
     central_logger->log("PomoOS starting up", logging::levels::INFO);
-    network_service->initWiFi();
-    network_service->initRest();
     delay(1000);
-
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
         Serial.println("SSD1306 allocation failed");
         for(;;);
@@ -149,8 +151,6 @@ void setup() {
 // It reads the button state, handles long press, single press, and updates timer and screen
 
 void loop() {
-    network_service->handleRestClient();
-
     currentTime = millis();
     buttonState = digitalRead(buttonPin);
 
@@ -204,6 +204,7 @@ void handleLongPress() {
                 break;
             case SYNC_SCREEN:
                 Serial.println("Returning to menu screen");
+                network_service->stopWiFi();
                 currentState = MENU_SCREEN; // Switch back to menu screen
                 break;
             case TASK_COMPLETE_QUERY_SCREEN:
@@ -292,6 +293,10 @@ void handleSinglePress() {
                     break;
                 case MENU_SETTINGS:
                     Serial.println("Entering settings screen");
+                    showCenteredMessage("Starting:\n network services");
+
+                    network_service->initWiFi();
+                    network_service->initRest();
                     currentState = SYNC_SCREEN; // Switch to settings screen
                     break;
             }
@@ -422,7 +427,7 @@ void updateTimer() {
         } } else {
             timerSeconds--;
         }
-        showTimerScreen(task_control_service.tasks[task_control_service.getIndex()].taskName, timerMinutes, timerSeconds); // Update the timer screen
+        showTimerScreen(timerMinutes, timerSeconds); // Update the timer screen
     }
 }
 
@@ -445,6 +450,7 @@ void updateScreenMode() {
             showAllTasksDone();
             break;
         case SYNC_SCREEN: // Show sync screen
+            network_service->handleRestClient();
             showSyncScreen();
             break;
         case TROPHY_SCREEN: // Show trophy screen
@@ -508,10 +514,10 @@ void showSyncScreen() {
     display.setTextColor(WHITE);
     display.setCursor(0, 0);
     display.println("SSID: ");
-    display.print(ssid);
+    display.print(network_service->getSSID().c_str());
     display.setCursor(0, 30);
     display.println("IP: ");
-    display.print(ip);
+    display.print(network_service->getIP().c_str());
     display.setCursor(0, 50);
     display.println("Syncing...");
     display.display();
@@ -543,14 +549,14 @@ void showPomodoroTimerScreen() {
   display.display();
 }
 
-void showTimerScreen(const String& taskName, int min, int sec) {
+void showTimerScreen(int min, int sec) {
   display.clearDisplay();
 
   // Task name displayed at the top
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.setTextColor(WHITE);
-  display.print(taskName);
+  display.print(task_control_service.tasks[task_control_service.getIndex()].taskName.c_str());
 
   // Timer in large font
   display.setTextSize(2);
@@ -607,7 +613,7 @@ void showAllTasksDone(){
     display.setTextWrap(false);
   }
 
-void updateScrollPosition(const String& text) {
+void updateScrollPosition(String text) {
     if (CHAR_WIDTH * text.length() > MAX_SCROLL_WIDTH) {
         if (scrollX < scrollResetX) {
             scrollX = SCREEN_WIDTH;
@@ -620,7 +626,7 @@ void updateScrollPosition(const String& text) {
 }   
 
 
-void showCurrentTask(const String& taskText) {
+void showCurrentTask( String taskText) {
     display.clearDisplay();
 
     // Label

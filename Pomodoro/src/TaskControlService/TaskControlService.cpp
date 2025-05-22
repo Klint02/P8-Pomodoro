@@ -5,6 +5,18 @@
 
 namespace TCS
 {
+    Task::Task () {
+        taskName = "default";
+        id = 0;
+        weekDay = 0;
+        startHour = 0;
+        startMinute = 0;
+        duration = 10;
+        timesCompleted = 0;
+        isComplete = false;
+        isRecurring = false;
+    }
+
     Task::Task(JSONVar obj) {
         String tmp_name = obj["taskName"];
         taskName = tmp_name.c_str(); 
@@ -54,17 +66,22 @@ namespace TCS
         }
     }
 
+    TaskControlService::TaskControlService() {
+        tasks.push_back(Task());
+        initTasks();
+    }
 
     void TaskControlService::TimerDone()
         {
-            if (tasks[index].timers.size() > 0)
-            {
+
+            if (tasks[index].timers.size() == 0) {
+                Serial.println("setting to true");
+                tasks[index].isComplete = true;
+                tasks[index].timesCompleted += 1;
+
+                taskPriority(15);
+            } else {
                 tasks[index].timers.erase(tasks[index].timers.begin());
-                if (tasks[index].timers.empty())
-                {
-                    tasks[index].isComplete = true;
-                    index++;
-                }
             }
         }
 
@@ -127,11 +144,14 @@ namespace TCS
 
         for (int i = 0; i < tasks.size(); i++)
         {
-            if (tasks[i].isComplete == true)
+            if (tasks[i].isComplete != true)
             {
                 index = i;
                 return;
             }
         }
+
+        index = 0;
+
     }
 }
