@@ -35,9 +35,21 @@ The sketch runs on a Wemos D1 Mini and the following controls:
 - RtcDS1302 Library
 
 ## Setup and Installation
-
-1. Connect the hardware as per the wiring indicated above
+### Pomodoro setup
+1. Connect the hardware as per the wiring indicated above (or using the wirering diagram from the paper)
 2. Install the required libraries in your Arduino IDE
 3. Open the sketch in Arduino IDE and select the correct board (Wemos D1 Mini) and port.
 4. Upload the sketch to the board.
 
+### App setup
+compilation commands:
+android: flutter build apk --split-per-abi
+Windows: flutter build windows
+
+step by step
+1. Open the `App` folder and use either the windows or android compilation command  
+2. navigate to the output folder specified by flutter itself and run open the app
+
+There are precompiled apk's and binaries given with the release, so you can skip compilation of the app
+
+**NOTE**: If there is a problem connecting to the Pomodoro using the an phone, then use the windows application
