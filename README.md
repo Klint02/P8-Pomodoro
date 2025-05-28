@@ -1,22 +1,43 @@
-# P8-Pomodoro Timer - Microcontroller code
+# P8-PomodoroBoy - Firmware and App code
 
-This sketch runs on a Wemos D1 Mini and the following controls:
+This repository contains the firmware for PomodoroBoy, a tangible Pomodoro timer prototype designed to help users stay focused by physically separating the timer functionality from digital distractions like smartphones or computers.
 
-- A button (single, long and double press)
-- An OLED display (SSD1306 I2C) - 128x64 pixels
-- An onboard LED for visual feedback
+The sketch runs on a Wemos D1 Mini and the following controls:
+
+- A button for user interaction (single press, long press)
+- An OLED display (SSD1306 I2C, 128x64 pixels) for status updates
+- An RTC module (DS1307) to keep track of real-world time
+- A battery-powered supply for portability
 
 ## Wiring
 
-| Component | Pin |
-|-----------|-----|
-| Button    |  D5 |
-| OLED SDA  |  D2 |
-| OLED SCL  |  D1 |
-| OLED VCC  | 3V3 |
-| OLED GND  |  G  |
+| Component      | Pin |
+|----------------|-----|
+| Button         |  D5 |
+| OLED SDA       |  D2 |
+| OLED SCL       |  D1 |
+| OLED VCC       | 3V3 |
+| OLED GND       |   G |
+| RTC RST        |  D8 |
+| RTC DAT        |  D7 |
+| RTC CLK        |  D6 |
+| RTC GND        |  G  |
+| RTC VCC        | 3V3 |
+| Battery Pack + |  5V |
+| Battery Pack - | GND |
 
 ## Dependencies 
 
 - Adafruit GFX Library
 - Adafruit SSD1306 Library
+- ESP8266WebServer Library
+- ThreeWire Library
+- RtcDS1302 Library
+
+## Setup and Installation
+
+1. Connect the hardware as per the wiring indicated above
+2. Install the required libraries in your Arduino IDE
+3. Open the sketch in Arduino IDE and select the correct board (Wemos D1 Mini) and port.
+4. Upload the sketch to the board.
+
