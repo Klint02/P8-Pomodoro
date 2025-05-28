@@ -25,7 +25,7 @@ namespace network {
         return message_oss.str();
     }
 
-    networkService::networkService(const logging::LoggingService& logging_service, RTC::RTCService& RTC_service) : RTC_service(RTC_service) {
+    networkService::networkService(const logging::LoggingService& logging_service, RTC::RTCService& RTC_service, TCS::TaskControlService& TCS)  : RTC_service(RTC_service), TCS(TCS) {
         this->server = new ESP8266WebServer(80);
         this->current_ip = new IPAddress(0,0,0,0);
         this->local_ip = new IPAddress(192,168,1,2);
@@ -33,6 +33,14 @@ namespace network {
         this->subnet = new IPAddress(255,255,255,0);
         this->logger = new logging::LoggingWrapper("Network Service", logging_service);
         //FOR TESTING
+    }
+
+    std::string networkService::getSSID() {
+        return SSID;
+    }
+
+    std::string networkService::getIP() {
+        return IPToString(*local_ip);
     }
 
     void networkService::initWiFi() {
@@ -52,7 +60,7 @@ namespace network {
             logger->log("No known networks found. Starting softAP", logging::levels::ERROR);
             
             logger->log("Setting soft-AP configuration ... ", logging::levels::INFO);
-            if (WiFi.softAP("Pomodoro Net") && WiFi.softAPConfig(*local_ip, *gateway, *subnet)) {
+            if (WiFi.softAP(SSID.c_str()) && WiFi.softAPConfig(*local_ip, *gateway, *subnet)) {
                 logger->log("Ready", logging::levels::INFO);
             } else {
                 logger->log("Failed, stopping WiFi radio", logging::levels::ERROR);
@@ -140,9 +148,17 @@ namespace network {
             }
         });
 
-        server->on("/recieve", HTTP_GET, [this]() {
-            logger->log("babababab", logging::levels::DEBUG);
-            server->send(200, F("application/json"), F(""));
+        server->on("/receive", HTTP_GET, [this]() {
+            std::ostringstream tasks_json;
+            tasks_json << "[";
+            for (auto it = TCS.tasks.begin(); it != TCS.tasks.end(); ++it) {
+                tasks_json << *it;
+                if (std::next(it) != TCS.tasks.end()) {
+                    tasks_json << ",";
+                }
+            }
+            tasks_json << "]";
+            server->send(200, F("application/json"), tasks_json.str().c_str());
         });
 
         server->on("/send", HTTP_POST, [this]() {
@@ -166,7 +182,9 @@ namespace network {
             for (auto& task : task_vector) {
                 std::cout << task << std::endl;
             }
-
+            
+            TCS.tasks.swap(task_vector);
+            TCS.initTasks();
             server->send(200, F("text/html"), F("done"));
         });
     }

@@ -5,6 +5,18 @@
 
 namespace TCS
 {
+    Task::Task () {
+        taskName = "default";
+        id = 0;
+        weekDay = 0;
+        startHour = 0;
+        startMinute = 0;
+        duration = 10;
+        timesCompleted = 0;
+        isComplete = false;
+        isRecurring = false;
+    }
+
     Task::Task(JSONVar obj) {
         String tmp_name = obj["taskName"];
         taskName = tmp_name.c_str(); 
@@ -54,17 +66,22 @@ namespace TCS
         }
     }
 
+    TaskControlService::TaskControlService() {
+        tasks.push_back(Task());
+        initTasks();
+    }
 
     void TaskControlService::TimerDone()
         {
-            if (tasks[index].timers.size() > 0)
-            {
+
+            if (tasks[index].timers.size() == 0) {
+                Serial.println("setting to true");
+                tasks[index].isComplete = true;
+                tasks[index].timesCompleted += 1;
+
+                taskPriority(15);
+            } else {
                 tasks[index].timers.erase(tasks[index].timers.begin());
-                if (tasks[index].timers.empty())
-                {
-                    tasks[index].isComplete = true;
-                    index++;
-                }
             }
         }
 
@@ -97,20 +114,6 @@ namespace TCS
         {
             trophys++;
         }
-
-        void TaskControlService::debug()
-        {
-            std::cout << "Task timers:\n";
-            for (int i = 0; i < this->tasks.size(); i++)
-            {
-                std::cout << "Task " << i << ": ";
-                for (int j = 0; j < this->tasks[i].timers.size(); j++)
-                {
-                    std::cout << this->tasks[i].timers[j] << " ";
-                }
-                std::cout << std::endl;
-            }
-        }
         
         int TaskControlService::getIndex(){
             return index;
@@ -125,5 +128,30 @@ namespace TCS
             tasks[index].timers.clear();
             TimerDone();
         }
+        int TaskControlService::getTrophys(){
+            return trophys;
+        }
+        void TaskControlService::taskPriority(int hour)
+    {
+        for (int i = 0; i < tasks.size(); i++)
+        {
+            if (tasks[i].isComplete == false && tasks[i].startHour > hour)
+            {
+                index = i;
+                return;
+            }
+        }
 
+        for (int i = 0; i < tasks.size(); i++)
+        {
+            if (tasks[i].isComplete != true)
+            {
+                index = i;
+                return;
+            }
+        }
+
+        index = 0;
+
+    }
 }

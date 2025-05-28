@@ -1,7 +1,7 @@
 #ifndef SPEAKER_HEADER
 #define SPEAKER_HEADER
 
-#define buzzer 14
+#define buzzer 16
 
 
 namespace speaker {

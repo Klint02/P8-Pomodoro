@@ -4,6 +4,7 @@ namespace TCS {
     class Task
         {
         public:
+            Task();
             Task(JSONVar obj);
             std::string taskName;
             int id;
@@ -24,28 +25,26 @@ namespace TCS {
     class TaskControlService
     {
     private:
-        int amountOfTasks;
-        int tasksComplete;
-        int trophys;
-        int index;
+        int amountOfTasks = 0;
+        int tasksComplete = 0;
+        int trophys = 0;
+        int index = 0;
 
     public:
+        TaskControlService();
         std::vector<Task> tasks;
 
         void TimerDone();
         int NumberOfTasks();
-
         void initTasks();
-
         int TasksCompleted ();
-
         void NewTrophy();
-
-        void debug();
-        
         int getIndex();
         void addTime();
         void taskDoneEarly();
+        int getTrophys();
+        void taskPriority(int hour);
     };
+
 }
 #endif
